@@ -1,4 +1,4 @@
- 🛡️ CipherSentinel
+🛡️ CipherSentinel
 
 AI-Powered Document Integrity Detection System
 
@@ -198,17 +198,6 @@ http://localhost:8080
 
 ### Admin Dashboard
 ![Admin](screenshots/admindashboard1.png)
-
-Recommended screenshots:
-
-* Dashboard
-* Upload Page
-* Documents Page
-* Anomalies Dashboard
-* Audit Trail
-* Profile Page
-* Admin Dashboard
-
 
  🚀 Future Enhancements
 
