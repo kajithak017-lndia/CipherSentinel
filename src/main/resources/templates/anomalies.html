@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Anomalies - CipherSentinel</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<script src="/js/chart.umd.js"></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			background: #050914;
+			color: white;
+			font-family: 'Segoe UI', sans-serif;
+			min-height: 100vh;
+			overflow-x: hidden;
+		}
+
+		.grid-bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 0;
+			background-image:
+				linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg,
+					rgba(0, 212, 255, 0.03) 1px,
+					transparent 1px);
+			background-size: 40px 40px;
+			pointer-events: none;
+		}
+
+		/* ===== NAVBAR ===== */
+		.navbar-custom {
+			background: rgba(13, 21, 38, 0.95);
+			border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 15px 30px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 100;
+		}
+
+		.nav-brand {
+			font-size: 1.3rem;
+			font-weight: 800;
+			color: #00d4ff;
+			letter-spacing: 1px;
+		}
+
+		.nav-brand span {
+			color: #7b61ff;
+		}
+
+		.nav-right {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+		}
+
+		.btn-nav {
+			background: transparent;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			padding: 6px 16px;
+			border-radius: 6px;
+			text-decoration: none;
+			font-size: 0.85rem;
+			transition: all 0.2s;
+		}
+
+		.btn-nav:hover {
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+		}
+
+		.user-icon {
+			width: 42px;
+			height: 42px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			background: linear-gradient(135deg, #00d4ff, #7b61ff);
+			border: 1px solid rgba(0, 212, 255, 0.25);
+			border-radius: 50%;
+			transition: all .3s ease;
+		}
+
+		.user-icon i {
+			color: white;
+			font-size: 1rem;
+		}
+
+		.navbar-profile-pic {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: 50%;
+		}
+
+		/* ===== DROPDOWN ===== */
+		.user-dropdown {
+			position: absolute;
+			top: 60px;
+			right: 30px;
+			background: rgba(13, 21, 38, 0.98);
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			border-radius: 12px;
+			padding: 16px;
+			width: 220px;
+			display: none;
+			z-index: 200;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+		}
+
+		.user-dropdown.show {
+			display: block;
+		}
+
+		.user-dropdown-name {
+			color: white;
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+
+		.user-dropdown-role {
+			color: #00d4ff;
+			font-size: 0.78rem;
+			margin-bottom: 14px;
+			padding-bottom: 14px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+		}
+
+		.dropdown-item-custom {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 12px;
+			color: #e8f0fe;
+			text-decoration: none;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			transition: all 0.2s;
+		}
+
+		.dropdown-item-custom:hover {
+			background: rgba(0, 212, 255, 0.08);
+			color: #00d4ff;
+		}
+
+		.dropdown-divider {
+			border: none;
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			margin: 8px 0;
+		}
+
+		.logout-btn {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 12px;
+			color: #ff4c6a;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			background: none;
+			border: none;
+			width: 100%;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.logout-btn:hover {
+			background: rgba(255, 76, 106, 0.08);
+		}
+
+		/* ===== MAIN ===== */
+		.main-content {
+			position: relative;
+			z-index: 1;
+			padding: 24px;
+			overflow-x: hidden;
+
+		}
+
+		.page-title {
+			font-size: 1.8rem;
+			font-weight: 700;
+			color: #ff4c6a;
+			margin-bottom: 6px;
+		}
+
+		.page-sub {
+			color: #7a8aaa;
+			font-size: 0.9rem;
+			margin-bottom: 24px;
+		}
+
+		/* ===== STAT CARDS ===== */
+		.stats-row {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 14px;
+			margin-bottom: 24px;
+		}
+
+		.stat-card {
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 12px;
+			padding: 18px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			transition: all 0.2s;
+		}
+
+		.stat-card:hover {
+			border-color: rgba(0, 212, 255, 0.3);
+		}
+
+		.stat-icon {
+			font-size: 1.8rem;
+			flex-shrink: 0;
+		}
+
+		.stat-label {
+			color: #7a8aaa;
+			font-size: 0.75rem;
+			margin-bottom: 3px;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+		}
+
+		.stat-value {
+			font-weight: 800;
+			font-size: 1.6rem;
+		}
+
+		/* ===== TOP ROW ===== */
+		.top-row {
+			display: grid;
+			grid-template-columns: 280px 1fr 380px;
+			gap: 20px;
+			align-items: stretch;
+			margin-bottom: 12px;
+		}
+
+		/* ===== GAUGE ===== */
+		.gauge-card {
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 12px;
+			padding: 20px;
+			text-align: center;
+			min-height: auto;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+		}
+
+		.gauge-chart-wrap {
+			position: relative;
+			width: 100%;
+			height: 220px;
+			overflow: hidden;
+		}
+
+		#gaugeChart {
+			width: 100% !important;
+			height: 100% !important;
+		}
+
+		.card-title {
+			color: #00d4ff;
+			font-size: 0.75rem;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			margin-bottom: 12px;
+		}
+
+		.gauge-percent {
+			font-size: 2.2rem;
+			font-weight: 800;
+			margin-top: 6px;
+		}
+
+		.gauge-label {
+			color: #7a8aaa;
+			font-size: 0.8rem;
+			margin-top: 4px;
+		}
+
+		.safe-high {
+			color: #00ff88;
+		}
+
+		.safe-medium {
+			color: #ffc800;
+		}
+
+		.safe-low {
+			color: #ff4c6a;
+		}
+
+		/* ===== PROCESS CARD ===== */
+		.process-card {
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 12px;
+			padding: 20px;
+			min-height: auto;
+		}
+
+		.process-step {
+			display: flex;
+			align-items: flex-start;
+			gap: 12px;
+			padding: 9px 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		}
+
+		.process-step:last-child {
+			border-bottom: none;
+		}
+
+		.system-status {
+			margin-top: 20px;
+			padding-top: 15px;
+			border-top: 1px solid rgba(255, 255, 255, 0.08);
+		}
+
+		.status-title {
+			color: #00d4ff;
+			font-size: .85rem;
+			font-weight: 700;
+			margin-bottom: 12px;
+		}
+
+		.status-item {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 10px;
+			color: #e8f0fe;
+			font-size: .85rem;
+		}
+
+		.status-dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			display: inline-block;
+		}
+
+		.status-dot.online {
+			background: #00ff88;
+			box-shadow: 0 0 8px #00ff88;
+		}
+
+		.step-num {
+			width: 26px;
+			height: 26px;
+			background: rgba(0, 212, 255, 0.1);
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 0.72rem;
+			color: #00d4ff;
+			flex-shrink: 0;
+			font-weight: 700;
+		}
+
+		.step-title {
+			color: #e8f0fe;
+			font-size: 0.85rem;
+			font-weight: 600;
+			margin-bottom: 2px;
+		}
+
+		.step-desc {
+			color: #7a8aaa;
+			font-size: 0.75rem;
+		}
+
+		/* ===== CHART CARD ===== */
+		.chart-card {
+		    background: #0d1526;
+		    border: 1px solid rgba(0, 212, 255, 0.15);
+		    border-radius: 16px;
+		    padding: 20px;
+		    min-height: auto;
+		}
+
+		.card-title {
+			color: #00d4ff;
+			font-size: 0.9rem;
+			font-weight: 700;
+			letter-spacing: 1px;
+		}
+
+		.severity-summary {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			margin-top: 15px;
+			margin-bottom: 5px;
+		}
+
+		.sev-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 10px 14px;
+			border-radius: 10px;
+			font-size: 0.9rem;
+		}
+
+		.sev-row strong {
+			font-size: 1rem;
+		}
+
+		.sev-row.high {
+			background: rgba(255, 76, 106, 0.08);
+			border: 1px solid rgba(255, 76, 106, 0.2);
+			color: #ff4c6a;
+		}
+
+		.sev-row.medium {
+			background: rgba(255, 200, 0, 0.08);
+			border: 1px solid rgba(255, 200, 0, 0.2);
+			color: #ffc800;
+		}
+
+		.sev-row.low {
+			background: rgba(0, 255, 136, 0.08);
+			border: 1px solid rgba(0, 255, 136, 0.2);
+			color: #00ff88;
+		}
+
+
+		#severityChart {
+			width: 180px !important;
+			height: 180px !important;
+			margin: auto;
+		}
+
+		#typeChart {
+			max-height: 240px !important;
+			max-width: 240px !important;
+			margin: auto;
+			display: block;
+		}
+
+		.security-summary {
+			background: transparent;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 10px;
+			margin-top: 6px;
+		}
+
+		.summary-item {
+			background: rgba(255, 255, 255, 0.03);
+			border: 1px solid rgba(0, 212, 255, .15);
+			border-radius: 12px;
+			padding: 20px;
+			text-align: center;
+		}
+
+		.summary-item span {
+			color: #aab6d3;
+			font-size: .85rem;
+		}
+
+		.summary-item h2 {
+			margin-top: 25px;
+			font-size: 2rem;
+			font-weight: 800;
+		}
+
+		.gauge-card,
+		.process-card,
+		.chart-card {
+			background: rgba(13, 21, 38, 0.95);
+			backdrop-filter: blur(12px);
+			box-shadow:
+				0 0 25px rgba(0, 212, 255, 0.08),
+				inset 0 0 15px rgba(255, 255, 255, 0.02);
+		}
+		/* ===== TABLE CARD ===== */
+		.table-card {
+			background: #0d1526;
+			border: 1px solid rgba(255, 76, 106, 0.2);
+			border-radius: 12px;
+			overflow: hidden;
+		}
+
+		.table-card-header {
+			padding: 14px 20px;
+			border-bottom: 1px solid rgba(255, 76, 106, 0.15);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.table-card-title {
+			color: #ff4c6a;
+			font-size: 0.78rem;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			font-weight: 600;
+		}
+
+		.table {
+			margin: 0;
+		}
+
+		.table thead {
+			background: rgba(255, 76, 106, 0.06);
+		}
+
+		.table thead th {
+			color: #ff8099;
+			font-size: 0.72rem;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			border-bottom: 1px solid rgba(255, 76, 106, 0.15);
+			padding: 13px 18px;
+			border-top: none;
+			font-weight: 600;
+		}
+
+		.table tbody td {
+			color: #e8f0fe;
+			font-weight: 500;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			padding: 13px 18px;
+			font-size: 0.86rem;
+			border-top: none;
+			vertical-align: middle;
+		}
+
+		.table tbody tr:hover {
+			background: rgba(255, 76, 106, 0.03);
+		}
+
+		.table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		/* ===== BADGES ===== */
+		.sev-high {
+			display: inline-block;
+			background: #ff4c6a;
+			color: #ffffff !important;
+			border: none;
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 0.74rem;
+			font-weight: 700;
+		}
+
+		.sev-medium {
+			display: inline-block;
+			background: #ffc800;
+			color: #000000 !important;
+			border: none;
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 0.74rem;
+			font-weight: 700;
+		}
+
+		.sev-low {
+			display: inline-block;
+			background: #00ff88;
+			color: #000000 !important;
+			border: none;
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 0.74rem;
+			font-weight: 700;
+		}
+
+		.doc-badge {
+			background: rgba(0, 212, 255, 0.08);
+			color: #00d4ff;
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 3px 8px;
+			border-radius: 5px;
+			font-size: 0.72rem;
+		}
+
+		.type-text {
+			color: #007bff !important;
+			font-weight: 700;
+		}
+
+		/* ===== EMPTY ===== */
+		.empty-state {
+			text-align: center;
+			padding: 40px;
+			color: #7a8aaa;
+		}
+
+		.safety-guide {
+			margin-top: 15px;
+			padding: 18px;
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, .15);
+			border-radius: 12px;
+		}
+
+		.guide-title {
+			color: #00d4ff;
+			font-weight: 700;
+			margin-bottom: 12px;
+		}
+
+		.guide-item {
+			margin-bottom: 10px;
+			font-size: .9rem;
+		}
+
+		.guide-item.high {
+			color: #00ff88;
+		}
+
+		.guide-item.medium {
+			color: #ffc800;
+		}
+
+		.guide-item.low {
+			color: #ff4c6a;
+		}
+
+		@media (max-width:768px) {
+
+			.main-content {
+				padding: 15px;
+			}
+
+			.navbar-custom {
+				display: block;
+				padding: 15px;
+				position: relative;
+			}
+
+			.user-icon {
+				position: absolute;
+				top: 12px;
+				right: 15px;
+			}
+
+			.nav-brand {
+				padding-right: 60px;
+				margin-bottom: 15px;
+			}
+
+			.nav-right {
+				display: flex;
+				justify-content: center;
+				gap: 8px;
+				flex-wrap: wrap;
+			}
+
+			.btn-nav {
+				flex: 1;
+				min-width: 110px;
+				text-align: center;
+			}
+
+			.stats-row {
+				grid-template-columns: 1fr 1fr;
+			}
+
+			.top-row {
+				grid-template-columns: 1fr;
+			}
+
+			.chart-row {
+				grid-template-columns: 1fr;
+			}
+
+			.security-summary {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.gauge-card,
+		.process-card,
+		.chart-card {
+			width: 100%;
+			height: 100%;
+		}
+
+		#severityChart,
+		#typeChart {
+			max-width: 180px !important;
+			max-height: 180px !important;
+		}
+
+		/* Table */
+		.table-card {
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.table {
+			min-width: 900px;
+		}
+
+		.table th,
+		.table td {
+			white-space: nowrap;
+		}
+
+		/* Dropdown */
+		.user-dropdown {
+			right: 10px;
+			width: 220px;
+		}
+
+		/* Titles */
+		.page-title {
+			font-size: 1.4rem;
+		}
+
+		.page-sub {
+			font-size: 0.85rem;
+		}
+
+		.mobile-anomaly-card {
+			display: none;
+		}
+
+		@media(max-width:768px) {
+
+			.table-card table {
+				display: none;
+			}
+
+			.mobile-anomaly-card {
+				display: block;
+			}
+
+			.anomaly-card {
+				background: #0d1526;
+				border: 1px solid rgba(255, 76, 106, .15);
+				border-radius: 12px;
+				padding: 15px;
+				margin-bottom: 12px;
+			}
+
+			.anomaly-row {
+				margin-bottom: 8px;
+				color: #c8d8f0;
+				word-break: break-word;
+			}
+
+			.anomaly-label {
+				color: rgb(0, 255, 255);
+				font-size: .75rem;
+				text-transform: uppercase;
+				margin-right: 5px;
+				font-weight: 600;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="grid-bg"></div>
+
+	<!-- ===== NAVBAR ===== -->
+	<div class="navbar-custom">
+		<div class="nav-brand">
+			🛡️ CIPHER<span>SENTINEL</span>
+		</div>
+		<div class="nav-right">
+			<a href="/dashboard" class="btn-nav">
+				<i class="fas fa-home"></i> Dashboard
+			</a>
+			<a href="/documents" class="btn-nav">
+				<i class="fas fa-file-alt"></i>
+				Documents
+			</a>
+			<a href="/audit" class="btn-nav">
+				<i class="fas fa-history"></i>
+				Audit Trail
+			</a>
+			<div class="user-icon" onclick="toggleDropdown()">
+
+				<img th:if="${profilePic != null and profilePic != ''}" th:src="@{'/profile-images/' + ${profilePic}}"
+					alt="Profile" class="navbar-profile-pic" />
+
+				<i th:unless="${profilePic != null and profilePic != ''}" class="fas fa-user"></i>
+
+			</div>
+		</div>
+	</div>
+
+	<!-- ===== DROPDOWN ===== -->
+	<div class="user-dropdown" id="userDropdown">
+		<div class="user-dropdown-name">
+			👤
+			<span th:text="${#authentication.name}">
+				User
+			</span>
+		</div>
+		<div class="user-dropdown-role">
+			🛡️ CipherSentinel User
+		</div>
+		<a href="/dashboard" class="dropdown-item-custom">
+			<i class="fas fa-home"></i> Dashboard
+		</a>
+		<a href="/upload" class="dropdown-item-custom">
+			<i class="fas fa-upload"></i>
+			Upload Document
+		</a>
+		<a href="/documents" class="dropdown-item-custom">
+			<i class="fas fa-file-alt"></i>
+			My Documents
+		</a>
+		<a href="/anomalies" class="dropdown-item-custom">
+			<i class="fas fa-exclamation-triangle">
+			</i> Anomalies
+		</a>
+		<a href="/audit" class="dropdown-item-custom">
+			<i class="fas fa-history"></i>
+			Audit Trail
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dropdown-item-custom">
+			<i class="fas fa-user-shield"></i>
+			Admin Dashboard</a>
+		<a href="/profile" class="dropdown-item-custom">
+			<i class="fas fa-user"></i>
+			Profile
+		</a>
+		<a href="/change-password" class="dropdown-item-custom">
+			<i class="fas fa-key"></i>
+			Change Password
+		</a>
+		<a href="/about" class="dropdown-item-custom">
+			<i class="fas fa-info-circle"></i>
+			About Us
+		</a>
+		<a href="/settings" class="dropdown-item-custom">
+			<i class="fas fa-cog"></i>
+			Settings
+		</a>
+		<hr class="dropdown-divider" />
+		<form th:action="@{/logout}" method="post">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<button type="submit" class="logout-btn">
+				<i class="fas fa-sign-out-alt"></i>
+				Logout
+			</button>
+		</form>
+	</div>
+
+	<!-- ===== MAIN CONTENT ===== -->
+	<div class="main-content">
+
+		<div class="page-title">
+			🚨 Anomaly Detection
+		</div>
+		<div class="page-sub">
+			Real-time document scanning results
+			and detected issues
+		</div>
+
+		<!-- Stats Row - Dynamically from backend -->
+		<div class="stats-row">
+			<div class="stat-card">
+				<div class="stat-icon">📄</div>
+				<div>
+					<div class="stat-label">
+						Total Scanned
+					</div>
+					<div class="stat-value" style="color:#00d4ff" th:text="${totalDocs}">0
+					</div>
+				</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">✅</div>
+				<div>
+					<div class="stat-label">
+						Safe Documents
+					</div>
+					<div class="stat-value" style="color:#00ff88" th:text="${safeCount}">0
+					</div>
+				</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">❌</div>
+				<div>
+					<div class="stat-label">
+						Unsafe Documents
+					</div>
+					<div class="stat-value" style="color:#ff4c6a" th:text="${unsafeCount}">
+						0
+					</div>
+				</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">🚨</div>
+				<div>
+					<div class="stat-label">
+						Issues Found
+					</div>
+					<div class="stat-value" style="color:#ff4c6a" th:text="${#lists.size(anomalies)}">
+						0
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Top Row: Gauge + Process + Charts -->
+		<div class="top-row">
+
+			<div class="gauge-card">
+
+				<div class="card-title">
+					Safety Level
+				</div>
+
+				<div class="gauge-chart-wrap">
+					<canvas id="gaugeChart"></canvas>
+				</div>
+
+				<div class="gauge-percent" id="gaugePercent">
+					0%
+				</div>
+
+				<div class="gauge-label" id="gaugeLabel">
+					Calculating...
+				</div>
+
+				<div class="safety-guide">
+
+					<div class="guide-title">
+						💡 Safety Level Guide
+					</div>
+
+					<div class="guide-item high">
+						🛡️ High Safety (80-100%)
+					</div>
+
+					<div class="guide-item medium">
+						⚠️ Medium Safety (40-79%)
+					</div>
+
+					<div class="guide-item low">
+						❌ Low Safety (0-39%)
+					</div>
+
+				</div>
+
+			</div>
+			<!-- Process Steps -->
+			<div class="process-card">
+				<div class="card-title">
+					🔍 How Documents Are Scanned
+				</div>
+				<div class="process-step">
+					<div class="step-num">1</div>
+					<div>
+						<div class="step-title">
+							Document Upload
+						</div>
+						<div class="step-desc">
+							File received and
+							stored securely
+						</div>
+					</div>
+				</div>
+				<div class="process-step">
+					<div class="step-num">2</div>
+					<div>
+						<div class="step-title">
+							Template Comparison
+						</div>
+						<div class="step-desc">
+							Compared against valid
+							land, legal and
+							financial templates
+						</div>
+					</div>
+				</div>
+				<div class="process-step">
+					<div class="step-num">3</div>
+					<div>
+						<div class="step-title">
+							Required Fields Check
+						</div>
+						<div class="step-desc">
+							Verifies signature,
+							date, owner, seal etc.
+						</div>
+					</div>
+				</div>
+				<div class="process-step">
+					<div class="step-num">4</div>
+					<div>
+						<div class="step-title">
+							ML Pattern Analysis
+						</div>
+						<div class="step-desc">
+							Weka scans word count,
+							structure and patterns
+						</div>
+					</div>
+				</div>
+				<div class="process-step">
+					<div class="step-num">5</div>
+					<div>
+						<div class="step-title">
+							Keyword Detection
+						</div>
+						<div class="step-desc">
+							Scans for fraud,
+							forgery and tampering
+						</div>
+					</div>
+				</div>
+				<div class="process-step">
+					<div class="step-num">6</div>
+					<div>
+						<div class="step-title">
+							Final Verdict
+						</div>
+						<div class="step-desc">
+							SAFE ✅ or UNSAFE ❌
+							with full report
+						</div>
+					</div>
+				</div>
+				<div class="system-status">
+					<div class="status-title">
+						🖥 System Status
+					</div>
+
+					<div class="status-item">
+						<span class="status-dot online"></span>
+						Scanner Engine Online
+					</div>
+
+					<div class="status-item">
+						<span class="status-dot online"></span>
+						Template Matching Active
+					</div>
+
+					<div class="status-item">
+						<span class="status-dot online"></span>
+						Weka Analysis Active
+					</div>
+
+					<div class="status-item">
+						<span class="status-dot online"></span>
+						Database Connected
+					</div>
+				</div>
+			</div>
+
+			<!-- Charts Column -->
+			<div style="display:flex;
+                    flex-direction:column;
+                    gap:14px;">
+				<!-- SEVERITY BREAKDOWN -->
+				<div class="chart-card">
+
+					<div class="card-title">
+						<i class="fas fa-chart-pie"></i>
+						Severity Breakdown
+					</div>
+
+					<div style="
+					        display:flex;
+					        justify-content:center;
+					        align-items:center;
+					        margin-top:20px;
+					        margin-bottom:20px;">
+
+						<canvas id="severityChart" style="
+					                max-width:220px;
+					                max-height:220px;">
+						</canvas>
+
+					</div>
+
+					<div class="security-summary">
+
+						<div class="summary-item">
+							<span>High Severity Issue(s)</span>
+							<h2 style="color:#ff4c6a" th:text="${highCount}">0</h2>
+						</div>
+
+						<div class="summary-item">
+							<span>Medium Severity Issue(s)</span>
+							<h2 style="color:#ffc800" th:text="${mediumCount}">0</h2>
+						</div>
+
+						<div class="summary-item">
+							<span>Low Severity Issue(s)</span>
+							<h2 style="color:#00ff88" th:text="${lowCount}">0</h2>
+						</div>
+
+						<div class="summary-item">
+							<span>Documents Scanned</span>
+							<h2 style="color:#00d4ff" th:text="${totalDocs}">0</h2>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Table Card -->
+		<div class="table-card">
+			<div class="table-card-header">
+				<span class="table-card-title">
+					🚨 Detected Issues
+				</span>
+				<span style="color:#7a8aaa;
+                         font-size:0.8rem;">
+					<span th:text="${#lists.size(anomalies)}">
+						0
+					</span> issue(s) found
+				</span>
+			</div>
+
+			<!-- Empty State -->
+			<div th:if="${#lists.isEmpty(anomalies)}" class="empty-state">
+				<div style="font-size:2.5rem;
+                        margin-bottom:12px;">
+					✅
+				</div>
+				<div style="color:#00ff88;
+                        font-size:1rem;">
+					No anomalies detected!
+				</div>
+				<div style="font-size:0.85rem;
+                        margin-top:6px;">
+					All your documents are clean
+				</div>
+			</div>
+
+			<!-- Table -->
+			<table class="table" th:if="${not #lists.isEmpty(anomalies)}">
+				<thead>
+					<tr>
+						<th>S.NO</th>
+						<th>Doc ID</th>
+						<th>Document</th>
+						<th>Issue Type</th>
+						<th>Severity</th>
+						<th>Description</th>
+						<th>Detected At</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="a,i : ${anomalies}">
+						<td style="color:#e8f0fe;font-weight:600;" th:text="${i.count}">
+							1
+						</td>
+						<td>
+							<span class="doc-badge" th:text="${a.documentId}">
+							</span>
+						</td>
+						<td style="color:#00d4ff;
+					           font-weight:600;" th:text="${a.documentName}">
+						</td>
+
+
+						<td class="type-text" th:text="${a.anomalyType}">
+						</td>
+						<td>
+							<span th:if="${a.severity == 'HIGH'}" class="sev-high">
+								🔴 HIGH
+							</span>
+							<span th:if="${a.severity == 'MEDIUM'}" class="sev-medium">
+								🟡 MEDIUM
+							</span>
+							<span th:if="${a.severity == 'LOW'}" class="sev-low">
+								🟢 LOW
+							</span>
+						</td>
+						<td style="max-width:280px;
+						           color:#e8f0fe;
+						           font-weight:500;" th:text="${a.description}">
+						</td>
+						<td style="color:#7a8aaa;
+                               font-size:0.78rem;" th:text="${a.detectedAt}">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="mobile-anomaly-card">
+
+			<div class="anomaly-card" th:each="a,i : ${anomalies}">
+
+				<div class="anomaly-row">
+					<span class="anomaly-label">Doc ID:</span>
+					<span th:text="${a.documentId}"></span>
+				</div>
+
+				<div class="anomaly-row">
+					<span class="anomaly-label">Document:</span>
+					<span th:text="${a.documentName}"></span>
+				</div>
+
+				<div class="anomaly-row">
+					<span class="anomaly-label">Issue:</span>
+					<span th:text="${a.anomalyType}"></span>
+				</div>
+
+				<div class="anomaly-row">
+					<span class="anomaly-label">Severity:</span>
+
+					<span th:if="${a.severity=='HIGH'}" class="sev-high">HIGH</span>
+
+					<span th:if="${a.severity=='MEDIUM'}" class="sev-medium">MEDIUM</span>
+
+					<span th:if="${a.severity=='LOW'}" class="sev-low">LOW</span>
+				</div>
+
+				<div class="anomaly-row">
+					<span class="anomaly-label">Description:</span>
+					<span th:text="${a.description}"></span>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		const totalDocs = /*[[${totalDocs}]]*/ 0;
+		const safeCount = /*[[${safeCount}]]*/ 0;
+		const unsafeCount = /*[[${unsafeCount}]]*/ 0;
+		const high = /*[[${highCount}]]*/ 0;
+		const medium = /*[[${mediumCount}]]*/ 0;
+		const low = /*[[${lowCount}]]*/ 0;
+		const totalIssues = /*[[${totalIssues}]]*/ 0;
+		const safetyLevel = /*[[${safetyLevel}]]*/ 0;
+
+		// Calculate safe percentage dynamically
+		const safePct = totalDocs > 0 ? Math.round((safeCount * 100) / totalDocs) : 0;
+
+		// Gauge Text
+		document.getElementById("gaugePercent").innerText = safePct + "%";
+
+		const gaugeLabel = document.getElementById("gaugeLabel");
+		const gaugePercent = document.getElementById("gaugePercent");
+
+		let gaugeColor = "#00ff88";
+		if (totalDocs === 0) {
+
+			gaugeLabel.innerHTML = "⚪ No Data Available";
+			gaugePercent.innerHTML = "--";
+			gaugePercent.style.color = "#5b6475";
+			gaugeColor = "#5b6475";
+
+		}
+		else if (safePct >= 70) {
+			gaugeLabel.innerHTML = "✅ High Safety Level";
+			gaugePercent.style.color = "#00ff88";
+			gaugeLabel.style.color = "#00ff88";
+			gaugeColor = "#00ff88";
+		}
+		else if (safePct >= 40) {
+			gaugeLabel.innerHTML = "⚠️ Medium Safety Level";
+			gaugePercent.style.color = "#ffc800";
+			gaugeLabel.style.color = "#ffc800";
+			gaugeColor = "#ffc800";
+		}
+		else {
+			gaugeLabel.innerHTML = "❌ Low Safety Level";
+			gaugePercent.style.color = "#ff4c6a";
+			gaugeLabel.style.color = "#ff4c6a";
+			gaugeColor = "#ff4c6a";
+		}
+
+		new Chart(
+			document.getElementById("gaugeChart"),
+			{
+				type: "doughnut",
+				data: {
+					datasets: [{
+						data: [safePct, 100 - safePct],
+						backgroundColor: [
+							gaugeColor,
+							"rgba(255,255,255,0.08)"
+						],
+						borderWidth: 0
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					rotation: -90,
+					circumference: 180,
+					cutout: "75%",
+					plugins: {
+						legend: {
+							display: false
+						}
+					}
+				}
+			}
+		);
+
+		// Severity Chart - Dynamic based on actual anomaly counts
+		const severityData =
+			totalIssues === 0
+				? [1]
+				: [high, medium, low];
+
+		const severityLabels =
+			totalIssues === 0
+				? ["No Data"]
+				: ["High", "Medium", "Low"];
+
+		const severityColors =
+			totalIssues === 0
+				? ["#5b6475"]
+				: ["#ff4c6a", "#ffc800", "#00ff88"];
+
+		new Chart(
+			document.getElementById("severityChart"),
+			{
+				type: "doughnut",
+				data: {
+					labels: severityLabels,
+					datasets: [{
+						data: severityData,
+						backgroundColor: severityColors,
+						borderWidth: 0
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					cutout: "70%",
+					plugins: {
+						legend: {
+							display: false
+						}
+					}
+				}
+			}
+		);
+
+		// Dropdown
+		function toggleDropdown() {
+			document
+				.getElementById("userDropdown")
+				.classList.toggle("show");
+		}
+
+		document.addEventListener(
+			"click",
+			function (e) {
+
+				const icon =
+					document.querySelector(".user-icon");
+
+				const dropdown =
+					document.getElementById(
+						"userDropdown"
+					);
+
+				if (
+					icon &&
+					!icon.contains(e.target) &&
+					!dropdown.contains(e.target)
+				) {
+					dropdown.classList.remove(
+						"show"
+					);
+				}
+			}
+		);
+		/*]]>*/
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dashboard - CipherSentinel</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<script src="/js/chart.umd.js"></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			background: #050914;
+			color: white;
+			font-family: 'Segoe UI', sans-serif;
+			min-height: 100vh;
+		}
+
+		.grid-bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 0;
+			background-image:
+				linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+			background-size: 40px 40px;
+			pointer-events: none;
+		}
+
+		/* NAVBAR */
+		.navbar-custom {
+			background: rgba(13, 21, 38, 0.98);
+			border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 0 30px;
+			height: 60px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 999;
+		}
+
+		.nav-brand {
+			font-size: 1.2rem;
+			font-weight: 800;
+			color: #00d4ff;
+			letter-spacing: 2px;
+		}
+
+		.nav-brand span {
+			color: #7b61ff;
+		}
+
+		.nav-right {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+		}
+
+		.btn-nav {
+			background: transparent;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			padding: 6px 14px;
+			border-radius: 6px;
+			text-decoration: none;
+			font-size: 0.82rem;
+			transition: all 0.2s;
+			white-space: nowrap;
+		}
+
+		.btn-nav:hover {
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+		}
+
+		/* USER ICON */
+		.user-btn {
+			width: 36px;
+			height: 36px;
+			background: linear-gradient(135deg, #00d4ff, #7b61ff);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			border: none;
+			outline: none;
+			flex-shrink: 0;
+			position: relative;
+			z-index: 1001;
+		}
+
+		.user-btn i {
+			color: white;
+			font-size: 0.9rem;
+			pointer-events: none;
+		}
+
+		/* DROPDOWN */
+		.user-dropdown {
+			position: fixed;
+			top: 65px;
+			right: 20px;
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			border-radius: 12px;
+			padding: 16px;
+			width: 220px;
+			display: none;
+			z-index: 9999;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+		}
+
+		.user-dropdown.open {
+			display: block !important;
+		}
+
+		.dd-name {
+			color: white;
+			font-weight: 600;
+			font-size: 0.92rem;
+			margin-bottom: 3px;
+		}
+
+		.dd-role {
+			color: #00d4ff;
+			font-size: 0.75rem;
+			margin-bottom: 12px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+		}
+
+		.dd-item {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #c8d8f0;
+			text-decoration: none;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-item:hover {
+			background: rgba(0, 212, 255, 0.08);
+			color: #00d4ff;
+		}
+
+		.dd-item i {
+			width: 14px;
+			text-align: center;
+		}
+
+		.dd-divider {
+			border: none;
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			margin: 8px 0;
+		}
+
+		.dd-logout-form {
+			margin: 0;
+		}
+
+		.dd-logout {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #ff4c6a;
+			background: none;
+			border: none;
+			width: 100%;
+			cursor: pointer;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-logout:hover {
+			background: rgba(255, 76, 106, 0.08);
+		}
+
+		.dd-logout i {
+			width: 14px;
+		}
+
+		/* MAIN */
+		.main-content {
+			position: relative;
+			z-index: 1;
+			padding: 24px 30px;
+		}
+
+		.welcome-text {
+			font-size: 1.4rem;
+			font-weight: 700;
+			color: #00d4ff;
+			margin-bottom: 3px;
+		}
+
+		.sub-text {
+			color: #7a8aaa;
+			font-size: 0.85rem;
+			margin-bottom: 20px;
+		}
+
+		/* STAT CARDS */
+		.stat-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.18);
+			border-radius: 12px;
+			padding: 18px 16px;
+			text-align: center;
+			transition: all 0.25s;
+			text-decoration: none;
+			display: block;
+			color: white;
+		}
+
+		.stat-card:hover {
+			border-color: #00d4ff;
+			box-shadow: 0 0 16px rgba(0, 212, 255, 0.12);
+			transform: translateY(-2px);
+			color: white;
+		}
+
+		.stat-icon {
+			font-size: 1.8rem;
+			margin-bottom: 6px;
+		}
+
+		.stat-title {
+			font-size: 0.75rem;
+			color: #7a8aaa;
+			margin-bottom: 4px;
+		}
+
+		.stat-value {
+			font-size: 1.9rem;
+			font-weight: 800;
+		}
+
+		/* CHART CARD */
+		.chart-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.18);
+			border-radius: 12px;
+			padding: 12px;
+		}
+
+		.chart-title {
+			color: #00d4ff;
+			font-size: 0.74rem;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			margin-bottom: 14px;
+		}
+
+		/* MINI CHARTS ROW */
+		.mini-charts {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 20px;
+			align-items: stretch;
+		}
+
+		.mini-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 10px;
+			padding: 14px;
+			height: 98%;
+		}
+
+		.mini-title {
+			color: #00d4ff;
+			font-size: 0.7rem;
+			font-weight: 600;
+			letter-spacing: 1.5px;
+			text-transform: uppercase;
+			margin-bottom: 10px;
+		}
+
+		/* ACTION CARDS */
+		.action-grid {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 8px;
+			height: 80%;
+		}
+
+		.action-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.12);
+			border-radius: 9px;
+			padding: 14px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			text-decoration: none;
+			color: white;
+			transition: all 0.2s;
+		}
+
+		.action-card:hover {
+			border-color: #00d4ff;
+			color: white;
+			box-shadow: 0 0 10px rgba(0, 212, 255, 0.08);
+		}
+
+		.ac-icon {
+			width: 36px;
+			height: 36px;
+			background: rgba(0, 212, 255, 0.1);
+			border-radius: 8px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1rem;
+			flex-shrink: 0;
+		}
+
+		.ac-title {
+			color: white;
+			font-size: 0.83rem;
+			font-weight: 600;
+			margin: 0;
+		}
+
+		.ac-sub {
+			color: #7a8aaa;
+			font-size: 0.72rem;
+			margin: 0;
+		}
+
+		/* QUICK STATS */
+		.qs-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 10px;
+			padding: 16px;
+			display: flex;
+			flex-direction: column;
+			height: 98%;
+		}
+
+		.qs-title {
+			color: #00d4ff;
+			font-size: 0.72rem;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			margin-bottom: 12px;
+		}
+
+		.qs-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 7px 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			font-size: 0.83rem;
+		}
+
+		.qs-row:last-child {
+			border-bottom: none;
+		}
+
+		.security-panel {
+			margin-top: 16px;
+			padding: 14px;
+			border-radius: 10px;
+			height: max-content;
+
+			background: rgba(0, 212, 255, 0.05);
+			border: 1px solid rgba(0, 212, 255, 0.15);
+
+			text-align: center;
+		}
+
+
+		.security-title {
+			color: #00d4ff;
+			font-size: 0.85rem;
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+
+		.security-text {
+			color: #7a8aaa;
+			font-size: 0.75rem;
+			line-height: 1.5;
+		}
+
+		.qs-label {
+			color: #7a8aaa;
+		}
+
+		.qs-val {
+			font-weight: 700;
+		}
+
+		/* FLOW CHART */
+		.flow-wrap {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			flex-wrap: wrap;
+			padding: 12px 0;
+		}
+
+		.flow-wrap {
+			margin: 0;
+			padding: 0;
+			display: flex;
+			align-items: center;
+			justify-content: space-evenly;
+
+			width: 100%;
+			height: 100%;
+
+			padding: 0;
+		}
+
+		.flow-step {
+			flex: 1;
+
+			background: rgba(0, 212, 255, 0.07);
+			border: 1px solid rgba(0, 212, 255, 0.18);
+			border-radius: 10px;
+
+			margin: 0 4px;
+			padding: 18px 10px;
+
+			text-align: center;
+		}
+
+		.flow-step span {
+			display: block;
+			font-size: 1.5rem;
+			margin-bottom: 8px;
+		}
+
+		.flow-arrow {
+			color: #00d4ff;
+			font-size: 1.4rem;
+			font-weight: bold;
+		}
+
+		.result-step {
+			border-color: rgba(0, 255, 136, 0.3);
+		}
+
+		.flow-step {
+			background: rgba(0, 212, 255, 0.07);
+			border: 1px solid rgba(0, 212, 255, 0.18);
+			border-radius: 7px;
+			padding: 9px 14px;
+			text-align: center;
+			font-size: 0.74rem;
+			color: #c8d8f0;
+			min-width: 90px;
+		}
+
+		.flow-step span {
+			display: block;
+			font-size: 1rem;
+			margin-bottom: 3px;
+		}
+
+		.flow-arrow {
+			color: #00d4ff;
+			font-size: 1rem;
+		}
+		/* ================= MOBILE VIEW ================= */
+
+		@media (max-width:768px){
+
+		    .navbar-custom{
+		        height:auto;
+		        padding:15px;
+		        display:block;
+		        position:relative;
+		    }
+
+		    .nav-brand{
+		        font-size:1.05rem;
+		        margin-bottom:15px;
+		        padding-right:55px;
+		    }
+
+		    .user-btn{
+		        position:absolute;
+		        top:12px;
+		        right:15px;
+		        width:40px;
+		        height:40px;
+		    }
+
+		    .nav-right{
+		        display:flex;
+		        flex-wrap:wrap;
+		        gap:8px;
+		        justify-content:center;
+		    }
+
+		    .btn-nav{
+		        flex:1;
+		        min-width:140px;
+		        text-align:center;
+		    }
+
+		    .main-content{
+		        padding:15px;
+		    }
+
+		    .welcome-text{
+		        font-size:1.15rem;
+		    }
+
+		    .sub-text{
+		        font-size:.8rem;
+		    }
+
+		    .stat-card{
+		        padding:14px 10px;
+		    }
+
+		    .stat-value{
+		        font-size:1.5rem;
+		    }
+
+		    .chart-card,
+		    .mini-card,
+		    .qs-card{
+		        height:auto !important;
+		    }
+
+		    .row.g-3{
+		        margin-left:0;
+		        margin-right:0;
+		    }
+
+		    .col-md-9,
+		    .col-md-3{
+		        width:100%;
+		    }
+
+		    #barChart,
+		    #typeChart,
+		    #statusChart,
+		    #sevChart{
+		        max-width:100%;
+		    }
+
+		    .flow-wrap{
+		        flex-direction:column;
+		        gap:10px;
+		    }
+
+		    .flow-arrow{
+		        transform:rotate(90deg);
+		    }
+
+		    .flow-step{
+		        width:100%;
+		        margin:0;
+		    }
+
+		    .user-dropdown{
+		        top:60px;
+		        right:10px;
+		        width:220px;
+		    }
+		}
+
+		/* ================= SMALL PHONES ================= */
+
+		@media (max-width:480px){
+
+		    .nav-brand{
+		        font-size:.95rem;
+		    }
+
+		    .btn-nav{
+		        min-width:100%;
+		        font-size:.78rem;
+		    }
+
+		    .welcome-text{
+		        font-size:1rem;
+		    }
+
+		    .stat-title{
+		        font-size:.7rem;
+		    }
+
+		    .stat-value{
+		        font-size:1.3rem;
+		    }
+
+		    .chart-title,
+		    .mini-title,
+		    .qs-title{
+		        font-size:.7rem;
+		    }
+
+		    .flow-step{
+		        font-size:.72rem;
+		        padding:12px;
+		    }
+
+		    .security-text{
+		        font-size:.72rem;
+		    }
+		}
+	</style>
+</head>
+
+<body>
+	<div class="grid-bg"></div>
+
+	<!-- NAVBAR -->
+	<div class="navbar-custom">
+		<div class="nav-brand">🛡️ CIPHER<span>SENTINEL</span></div>
+		<div class="nav-right">
+
+			<a href="/upload" class="btn-nav">
+				<i class="fas fa-upload"></i> Upload
+			</a>
+			<a href="/documents" class="btn-nav">
+				<i class="fas fa-file-alt"></i> Documents
+			</a>
+			<!-- USER BUTTON -->
+			<button class="user-btn" id="userBtn" type="button">
+
+				<img th:if="${profilePic != null and profilePic != ''}" th:src="@{'/profile-images/' + ${profilePic}}"
+					style="
+		            width:100%;
+		            height:100%;
+		            border-radius:50%;
+		            object-fit:cover;">
+
+				<i th:unless="${profilePic != null and profilePic != ''}" class="fas fa-user">
+				</i>
+
+			</button>
+		</div>
+	</div>
+
+	<!-- DROPDOWN (outside navbar) -->
+	<div class="user-dropdown" id="userDropdown">
+		<div class="dd-name">
+			👤 <span th:text="${#authentication.name}">User</span>
+		</div>
+		<div class="dd-role">🛡️ CipherSentinel User</div>
+
+		<a href="/dashboard" class="dd-item">
+			<i class="fas fa-home"></i> Dashboard
+		</a>
+		<a href="/upload" class="dd-item">
+			<i class="fas fa-upload"></i> Upload Document
+		</a>
+		<a href="/documents" class="dd-item">
+			<i class="fas fa-file-alt"></i> My Documents
+		</a>
+		<a href="/anomalies" class="dd-item">
+			<i class="fas fa-exclamation-triangle"></i> Anomalies
+		</a>
+		<a href="/audit" class="dd-item">
+			<i class="fas fa-history"></i> Audit Trail
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dd-item">
+			<i class="fas fa-user-shield"></i>
+			Admin Dashboard
+		</a>
+
+		<a href="/profile" class="dd-item">
+			<i class="fas fa-user"></i>
+			Profile
+		</a>
+		<a href="/change-password" class="dd-item">
+			<i class="fas fa-key"></i>
+			Change Password
+		</a>
+		<a href="/about" class="dd-item">
+			<i class="fas fa-info-circle"></i>
+			About Us
+		</a>
+		<a href="/settings" class="dd-item"><i class="fas fa-cog"></i> Settings</a>
+
+		<hr class="dd-divider" />
+
+		<form th:action="@{/logout}" method="post" class="dd-logout-form">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<button type="submit" class="dd-logout">
+				<i class="fas fa-sign-out-alt"></i>
+				Logout
+			</button>
+		</form>
+	</div>
+
+	<!-- MAIN CONTENT -->
+	<div class="main-content">
+		<div class="welcome-text">
+			Welcome, <span th:text="${#authentication.name}">User</span> 👋
+		</div>
+		<div class="sub-text">
+			AI-Powered Document Integrity Detection System
+		</div>
+
+		<!-- STAT CARDS -->
+		<div class="row g-3 mb-3">
+			<div class="col-6 col-md-3">
+				<a href="/documents" class="stat-card">
+					<div class="stat-icon">📄</div>
+					<div class="stat-title">Total Documents</div>
+					<div class="stat-value" style="color:#00d4ff" th:text="${totalDocs}">0</div>
+				</a>
+			</div>
+			<div class="col-6 col-md-3">
+				<a href="/anomalies" class="stat-card">
+					<div class="stat-icon">🚨</div>
+					<div class="stat-title">Anomalies Found</div>
+					<div class="stat-value" style="color:#ff4c6a" th:text="${totalAnomalies}">0</div>
+				</a>
+			</div>
+			<div class="col-6 col-md-3">
+				<a href="/documents" class="stat-card">
+					<div class="stat-icon">✅</div>
+					<div class="stat-title">Safe Documents</div>
+					<div class="stat-value" style="color:#00ff88" th:text="${safeCount}">0</div>
+				</a>
+			</div>
+			<div class="col-6 col-md-3">
+				<a href="/audit" class="stat-card">
+					<div class="stat-icon">📋</div>
+					<div class="stat-title">Audit Logs</div>
+					<div class="stat-value" style="color:#ffc800" th:text="${auditCount}">0</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- FULL WIDTH OVERVIEW -->
+		<div class="row g-3">
+			<!-- OVERVIEW-->
+			<div class="col-md-9">
+				<!-- Bar Chart -->
+				<div class="chart-card">
+					<div class="chart-title">
+						📊 Document Scan Overview
+					</div>
+					<div style="height:320px;">
+						<canvas id="barChart"></canvas>
+					</div>
+				</div>
+			</div>
+
+			<!-- QUICK ACTIONS -->
+			<div class="col-md-3">
+
+				<div class="chart-card" style="height:100%;">
+
+					<div class="chart-title">
+						⚡ Quick Actions
+					</div>
+
+					<div class="action-grid">
+
+						<a href="/upload" class="action-card">
+							<div class="ac-icon">📤</div>
+							<div>
+								<div class="ac-title">Upload</div>
+								<div class="ac-sub">Scan document</div>
+							</div>
+						</a>
+
+						<a href="/documents" class="action-card">
+							<div class="ac-icon">📋</div>
+							<div>
+								<div class="ac-title">Documents</div>
+								<div class="ac-sub">View files</div>
+							</div>
+						</a>
+
+						<a href="/anomalies" class="action-card">
+							<div class="ac-icon">🚨</div>
+							<div>
+								<div class="ac-title">Anomalies</div>
+								<div class="ac-sub">View issues</div>
+							</div>
+						</a>
+
+						<a href="/audit" class="action-card">
+							<div class="ac-icon">📜</div>
+							<div>
+								<div class="ac-title">Audit</div>
+								<div class="ac-sub">View logs</div>
+							</div>
+						</a>
+
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<!-- Mini Charts -->
+			<div class="row g-3 mt-3">
+
+				<!-- DOC TYPES -->
+				<div class="col-md-3">
+					<div class="mini-card">
+						<div class="mini-title">
+							Doc Types
+						</div>
+						<div style="height:280px;">
+							<canvas id="typeChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- STATUS -->
+				<div class="col-md-3">
+					<div class="mini-card">
+						<div class="mini-title">
+							Status
+						</div>
+						<div style="height:280px;">
+							<canvas id="statusChart"></canvas>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- SEVERITY -->
+				<div class="col-md-3">
+					<div class="mini-card">
+						<div class="mini-title">
+							Severity
+						</div>
+						<div style="height:280px;">
+							<canvas id="sevChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- QUICK STATS -->
+				<div class="col-md-3">
+					<div class="qs-card">
+						<div class="qs-title">📊 Quick Stats</div>
+
+						<div class="qs-row">
+							<span class="qs-label">Unsafe Documents</span>
+							<span class="qs-val" style="color:#ff4c6a" th:text="${unsafeCount}">0</span>
+						</div>
+
+						<div class="qs-row">
+							<span class="qs-label">Pending Scan</span>
+							<span class="qs-val" style="color:#ffc800" th:text="${pendingCount}">0</span>
+						</div>
+
+						<div class="qs-row">
+							<span class="qs-label">High Severity</span>
+							<span class="qs-val" style="color:#ff4c6a" th:text="${highCount}">0</span>
+						</div>
+
+						<div class="qs-row">
+							<span class="qs-label">Medium Severity</span>
+							<span class="qs-val" style="color:#ffc800" th:text="${mediumCount}">0</span>
+						</div>
+
+						<div class="qs-row">
+							<span class="qs-label">Low Severity</span>
+							<span class="qs-val" style="color:#00ff88" th:text="${lowCount}">0</span>
+						</div>
+
+						<!-- ADD THIS -->
+						<div class="security-panel">
+
+							<div class="security-title">
+								System Protection🛡️
+							</div>
+
+							<div class="security-text">
+								AI anomaly detection is actively monitoring
+								uploaded documents for suspicious patterns.
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- FULL WIDTH DETECTION FLOW -->
+				<div style="padding:0 30px 30px 30px;">
+					<div class="chart-card" style="margin-top:14px;padding:18px;">
+						<div class="chart-title">🔄 Detection Flow</div>
+
+						<div class="flow-wrap">
+							<div class="flow-step">
+								<span>📤</span>Upload
+							</div>
+
+							<span class="flow-arrow">→</span>
+
+							<div class="flow-step">
+								<span>🔍</span>Template Check
+							</div>
+
+							<span class="flow-arrow">→</span>
+
+							<div class="flow-step">
+								<span>🤖</span>ML Scan
+							</div>
+
+							<span class="flow-arrow">→</span>
+
+							<div class="flow-step">
+								<span>🚨</span>Detect
+							</div>
+
+							<span class="flow-arrow">→</span>
+
+							<div class="flow-step result-step">
+								<span>✅❌</span>Result
+							</div>
+						</div>
+					</div>
+				</div>
+				<script th:inline="javascript">
+					/*<![CDATA[*/
+
+					// Real data from server
+					const landCount = /*[[${landCount}]]*/ 0;
+					const legalCount = /*[[${legalCount}]]*/ 0;
+					const financialCount = /*[[${financialCount}]]*/ 0;
+
+					const safeCount = /*[[${safeCount}]]*/ 0;
+					const unsafeCount = /*[[${unsafeCount}]]*/ 0;
+					const pendingCount = /*[[${pendingCount}]]*/ 0;
+
+					const highCount = /*[[${highCount}]]*/ 0;
+					const mediumCount = /*[[${mediumCount}]]*/ 0;
+					const lowCount = /*[[${lowCount}]]*/ 0;
+					// Chart defaults
+					Chart.defaults.color = '#7a8aaa';
+					Chart.defaults.font.size = 10;
+
+					new Chart(
+						document.getElementById('barChart'),
+						{
+							type: 'doughnut',
+
+							data: {
+								labels: [
+									'Land Safe',
+									'Land Unsafe',
+									'Legal Safe',
+									'Legal Unsafe',
+									'Financial Safe',
+									'Financial Unsafe'
+								],
+
+								datasets: [{
+									data: [
+					                /*[[${landSafe}]]*/ 0,
+					                /*[[${landUnsafe}]]*/ 0,
+
+					                /*[[${legalSafe}]]*/ 0,
+					                /*[[${legalUnsafe}]]*/ 0,
+
+					                /*[[${financialSafe}]]*/ 0,
+					                /*[[${financialUnsafe}]]*/ 0
+									],
+
+									backgroundColor: [
+										'#00ff88',
+										'#ff4c6a',
+
+										'#00d4ff',
+										'#ff8c42',
+
+										'#7b61ff',
+										'#ffc800'
+									],
+
+									borderWidth: 2,
+									borderColor: '#050914'
+								}]
+							},
+
+							options: {
+								responsive: true,
+								maintainAspectRatio: false,
+
+								plugins: {
+									legend: {
+										position: 'bottom',
+										labels: {
+											color: '#c8d8f0'
+										}
+									}
+								},
+
+								cutout: '65%'
+							}
+						});
+					const dOpts = {
+						responsive: true,
+						maintainAspectRatio: false,
+
+						plugins: {
+							legend: {
+								position: 'bottom',
+								labels: {
+									color: '#c8d8f0',
+									boxWidth: 12,
+									padding: 10,
+									font: {
+										size: 10
+									}
+								}
+							}
+						},
+
+						cutout: '70%'
+					};
+
+					// Doc Type Chart
+					new Chart(
+						document.getElementById('typeChart'),
+						{
+							type: 'doughnut',
+							data: {
+								labels: [
+									'Land Records',
+									'Legal Documents',
+									'Financial Statements'
+								],
+								datasets: [{
+									data: [
+					                /*[[${landCount}]]*/ 0,
+					                /*[[${legalCount}]]*/ 0,
+					                /*[[${financialCount}]]*/ 0
+									],
+									backgroundColor: [
+										'#00d4ff',
+										'#7b61ff',
+										'#00ff88'
+									]
+								}]
+							},
+							options: dOpts
+						});
+
+					new Chart(
+						document.getElementById('statusChart'),
+						{
+							type: 'doughnut',
+							data: {
+								labels: [
+									'Safe',
+									'Unsafe',
+									'Pending'
+								],
+								datasets: [{
+									data: [
+					                /*[[${safeCount}]]*/ 0,
+					                /*[[${unsafeCount}]]*/ 0,
+					                /*[[${pendingCount}]]*/ 0
+									],
+									backgroundColor: [
+										'#00ff88',
+										'#ff4c6a',
+										'#ffc800'
+									]
+								}]
+							},
+							options: dOpts
+						});
+
+					new Chart(
+						document.getElementById('sevChart'),
+						{
+							type: 'doughnut',
+							data: {
+								labels: [
+									'High',
+									'Medium',
+									'Low'
+								],
+								datasets: [{
+									data: [
+					                /*[[${highCount}]]*/ 0,
+					                /*[[${mediumCount}]]*/ 0,
+					                /*[[${lowCount}]]*/ 0
+									],
+									backgroundColor: [
+										'#ff4c6a',
+										'#ffc800',
+										'#00ff88'
+									]
+								}]
+							},
+							options: dOpts
+						});
+
+					// USER DROPDOWN - FIXED
+					const userBtn = document.getElementById('userBtn');
+					const userDropdown = document.getElementById('userDropdown');
+
+					userBtn.addEventListener('click', function (e) {
+						e.stopPropagation();
+						userDropdown.classList.toggle('open');
+					});
+
+					document.addEventListener('click', function (e) {
+						if (!userBtn.contains(e.target) &&
+							!userDropdown.contains(e.target)) {
+							userDropdown.classList.remove('open');
+						}
+					});
+
+					/*]]>*/
+				</script>
+</body>
+
+</html>

@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin Dashboard - CipherSentinel</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			background: #050914;
+			color: white;
+			font-family: 'Segoe UI', sans-serif;
+			min-height: 100vh;
+		}
+
+		.grid-bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 0;
+			background-image:
+				linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg,
+					rgba(0, 212, 255, 0.03) 1px,
+					transparent 1px);
+			background-size: 40px 40px;
+			pointer-events: none;
+		}
+
+		/* NAVBAR */
+		.navbar-custom {
+			background: rgba(13, 21, 38, 0.98);
+			border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 0 30px;
+			height: 60px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 999;
+		}
+
+		.nav-brand {
+			font-size: 1.2rem;
+			font-weight: 800;
+			color: #00d4ff;
+			letter-spacing: 2px;
+		}
+
+		.nav-brand span {
+			color: #7b61ff;
+		}
+
+		.nav-right {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			position: relative;
+		}
+
+		.btn-nav {
+			background: transparent;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			padding: 6px 14px;
+			border-radius: 6px;
+			text-decoration: none;
+			font-size: 0.82rem;
+			transition: all 0.2s;
+			white-space: nowrap;
+		}
+
+		.btn-nav:hover {
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+		}
+
+		/* USER ICON */
+		.user-btn {
+			width: 36px;
+			height: 36px;
+			background: linear-gradient(135deg, #00d4ff, #7b61ff);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			border: none;
+			outline: none;
+			flex-shrink: 0;
+			position: relative;
+			z-index: 1001;
+		}
+
+		.user-btn i {
+			color: white;
+			font-size: 0.9rem;
+			pointer-events: none;
+		}
+
+		/* DROPDOWN */
+		.user-dropdown {
+			position: fixed;
+			top: 65px;
+			right: 20px;
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			border-radius: 12px;
+			padding: 16px;
+			width: 220px;
+			display: none;
+			z-index: 9999;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+		}
+
+		.user-dropdown.open {
+			display: block !important;
+		}
+
+		.dd-name {
+			color: white;
+			font-weight: 600;
+			font-size: 0.92rem;
+			margin-bottom: 3px;
+		}
+
+		.dd-role {
+			color: #00d4ff;
+			font-size: 0.75rem;
+			margin-bottom: 12px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+		}
+
+		.dd-item {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #c8d8f0;
+			text-decoration: none;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-item:hover {
+			background: rgba(0, 212, 255, 0.08);
+			color: #00d4ff;
+		}
+
+		.dd-item i {
+			width: 14px;
+			text-align: center;
+		}
+
+		.dd-divider {
+			border: none;
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			margin: 8px 0;
+		}
+
+		.dd-logout-form {
+			margin: 0;
+		}
+
+		.dd-logout {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #ff4c6a;
+			background: none;
+			border: none;
+			width: 100%;
+			cursor: pointer;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-logout:hover {
+			background: rgba(255, 76, 106, 0.08);
+		}
+
+		.dd-logout i {
+			width: 14px;
+		}
+
+		.main-content {
+			position: relative;
+			z-index: 1;
+			padding: 30px;
+		}
+
+		.page-title {
+			font-size: 1.8rem;
+			font-weight: 700;
+			color: #ff4c6a;
+			margin-bottom: 4px;
+		}
+
+		.page-sub {
+			color: #7a8aaa;
+			font-size: 0.9rem;
+			margin-bottom: 24px;
+		}
+
+		/* Stats */
+		.stats-grid {
+			display: grid;
+			grid-template-columns: repeat(8, 1fr);
+			gap: 12px;
+		}
+
+		.stat-card {
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 10px;
+			padding: 14px;
+			text-align: center;
+		}
+
+		.stat-icon {
+			font-size: 1.4rem;
+			margin-bottom: 4px;
+		}
+
+		.stat-label {
+			color: #7a8aaa;
+			font-size: 0.7rem;
+			margin-bottom: 4px;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+		}
+
+		.stat-value {
+			font-weight: 800;
+			font-size: 1.4rem;
+			color: rgb(255, 255, 255);
+		}
+
+		/* Alert */
+		.alert-success-custom {
+			background: rgba(0, 255, 136, 0.08);
+			border: 1px solid rgba(0, 255, 136, 0.25);
+			color: #00ff88;
+			border-radius: 8px;
+			padding: 12px 16px;
+			margin-bottom: 16px;
+			font-size: 0.88rem;
+		}
+
+		.alert-error-custom {
+			background: rgba(255, 76, 106, 0.08);
+			border: 1px solid rgba(255, 76, 106, 0.25);
+			color: #ff4c6a;
+			border-radius: 8px;
+			padding: 12px 16px;
+			margin-bottom: 16px;
+			font-size: 0.88rem;
+		}
+
+		/* Table */
+		.table-card {
+			background: #050914;
+			border: 1px solid rgba(0, 212, 255, 0.25);
+			border-radius: 14px;
+			overflow-x: auto;
+		}
+
+		.table-header {
+			padding: 16px 20px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.table-title {
+			color: #00d4ff;
+			font-size: 0.8rem;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+		}
+
+		.table {
+			margin: 0;
+			color: white !important;
+		}
+
+		.table thead {
+			background: rgba(0, 212, 255, 0.08);
+		}
+
+		.table thead th {
+			color: #00d4ff !important;
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 14px;
+		}
+
+		.table tbody td {
+			color: #c8d8f0 !important;
+			background: #0d1526;
+			border-color: rgba(255, 255, 255, 0.05);
+			padding: 14px;
+		}
+
+		.table tbody tr:hover td {
+			background: rgba(0, 212, 255, 0.05);
+		}
+
+		.table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		/* Role badges */
+		.role-badge {
+			display: inline-block;
+			padding: 3px 10px;
+			border-radius: 20px;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.badge.bg-info {
+			background: rgba(0, 212, 255, 0.15) !important;
+			color: #00d4ff !important;
+			border: 1px solid rgba(0, 212, 255, 0.4);
+		}
+
+		.role-ADMIN {
+			background: rgba(255, 76, 106, 0.15);
+			color: #ff4c6a;
+			border: 1px solid #ff4c6a;
+		}
+
+		.role-MANAGER {
+			background: rgba(255, 200, 0, 0.15);
+			color: #ffc800;
+			border: 1px solid rgba(255, 200, 0, 0.3);
+		}
+
+		.role-OFFICER {
+			background: rgba(0, 212, 255, 0.15);
+			color: #00d4ff;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+		}
+
+		.role-AUDITOR {
+			background: rgba(123, 97, 255, 0.15);
+			color: #7b61ff;
+			border: 1px solid rgba(123, 97, 255, 0.3);
+		}
+
+		.role-ANALYST {
+			background: rgba(0, 255, 136, 0.15);
+			color: #00ff88;
+			border: 1px solid rgba(0, 255, 136, 0.3);
+		}
+
+		.role-USER {
+			background: rgba(0, 212, 255, 0.15);
+			color: #00d4ff;
+			border: 1px solid #00d4ff;
+		}
+
+		.role-DEACTIVATED {
+			background: rgba(128, 128, 128, 0.15);
+			color: #888;
+			border: 1px solid rgba(128, 128, 128, 0.3);
+		}
+
+		/* Role select */
+		.role-select {
+			background: rgba(13, 21, 38, 0.95);
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			color: white;
+			border-radius: 6px;
+			padding: 5px 10px;
+			font-size: 0.82rem;
+			outline: none;
+			cursor: pointer;
+		}
+
+		.role-select:focus {
+			border-color: #00d4ff;
+		}
+
+		.role-select option {
+			background: #0d1526;
+			color: white;
+		}
+
+		/* Buttons */
+		.btn-role-save {
+			background: rgba(0, 212, 255, 0.1);
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			padding: 5px 12px;
+			border-radius: 6px;
+			font-size: 0.78rem;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.btn-role-save:hover {
+			background: rgba(0, 212, 255, 0.2);
+		}
+
+		.btn-delete {
+			background: rgba(255, 76, 106, 0.1);
+			border: 1px solid rgba(255, 76, 106, 0.3);
+			color: #ff4c6a;
+			padding: 5px 12px;
+			border-radius: 6px;
+			font-size: 0.78rem;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.btn-delete:hover {
+			background: rgba(255, 76, 106, 0.2);
+		}
+
+		/* RBAC Info Card */
+		.rbac-card {
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 14px;
+			padding: 20px;
+			margin-bottom: 24px;
+		}
+
+		.rbac-title {
+			color: #00d4ff;
+			font-size: 0.8rem;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			margin-bottom: 14px;
+		}
+
+		.rbac-row {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 10px 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		}
+
+		.rbac-row:last-child {
+			border-bottom: none;
+		}
+
+		.rbac-role {
+			width: 100px;
+			flex-shrink: 0;
+		}
+
+		.rbac-perms {
+			color: #7a8aaa;
+			font-size: 0.8rem;
+			flex: 1;
+		}
+
+		.perm-tag {
+			display: inline-block;
+			background: rgba(0, 212, 255, 0.06);
+			border: 1px solid rgba(0, 212, 255, 0.12);
+			color: rgb(128, 128, 128);
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 0.7rem;
+			margin: 2px;
+		}
+
+		/* You tag */
+		.you-tag {
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+			font-size: 0.68rem;
+			padding: 2px 6px;
+			border-radius: 4px;
+			margin-left: 6px;
+		}
+
+		.section-card {
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			border-radius: 14px;
+			padding: 20px;
+			margin-top: 25px;
+			box-shadow: 0 0 20px rgba(0, 212, 255, 0.05);
+			overflow-x: auto;
+		}
+
+		.section-title {
+			color: #00d4ff;
+			font-size: 0.85rem;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+		}
+
+		.export-btn {
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			background: transparent;
+			border-radius: 8px;
+			padding: 8px 14px;
+			text-decoration: none;
+			transition: .3s;
+			font-size: .85rem;
+		}
+
+		.export-btn:hover {
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+		}
+
+		@media (max-width:768px) {
+
+			.main-content {
+				padding: 15px;
+			}
+
+			.navbar-custom {
+				padding: 10px;
+				flex-wrap: wrap;
+				height: auto;
+			}
+
+			.nav-right {
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 8px;
+			}
+
+			.stats-grid {
+				grid-template-columns: repeat(2, 1fr);
+				gap: 12px;
+			}
+
+			.table-card,
+			.section-card,
+			.rbac-card {
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
+			}
+
+			.table {
+				min-width: 1000px;
+			}
+
+			.table th,
+			.table td {
+				white-space: nowrap;
+			}
+
+			.role-select {
+				min-width: 140px;
+			}
+
+			.btn-role-save,
+			.btn-delete {
+				white-space: nowrap;
+			}
+
+			.rbac-row {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+
+			.rbac-role {
+				width: 100%;
+				margin-bottom: 8px;
+			}
+		}
+
+		.mobile-user-card {
+			display: none;
+		}
+
+		@media(max-width:768px) {
+
+			.table-card table {
+				display: none;
+			}
+
+			.mobile-user-card {
+				display: block;
+			}
+
+			.user-card {
+				background: #0d1526;
+				border: 1px solid rgba(0, 212, 255, .15);
+				border-radius: 12px;
+				padding: 15px;
+				margin-bottom: 12px;
+			}
+
+			.user-card-row {
+				margin-bottom: 8px;
+				color: #c8d8f0;
+			}
+
+			.user-card-label {
+				color: #00d4ff;
+				font-size: .75rem;
+				text-transform: uppercase;
+				margin-right: 5px;
+			}
+		}
+
+		.mobile-audit-card {
+			display: none;
+		}
+
+		@media(max-width:768px) {
+
+			.section-card table {
+				display: none;
+			}
+
+			.mobile-audit-card {
+				display: block;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="grid-bg"></div>
+
+	<!-- NAVBAR -->
+	<div class="navbar-custom">
+		<div class="nav-brand">🛡️ CIPHER<span>SENTINEL</span></div>
+		<div class="nav-right">
+			<a href="/dashboard" class="btn-nav">
+				<i class="fas fa-home"></i> Dashboard
+			</a>
+
+			<a href="/upload" class="btn-nav">
+				<i class="fas fa-upload"></i> Upload
+			</a>
+			<a href="/documents" class="btn-nav">
+				<i class="fas fa-file-alt"></i> Documents
+			</a>
+			<!-- USER BUTTON -->
+			<button class="user-btn" id="userBtn" type="button">
+
+				<img th:if="${profilePic != null and profilePic != ''}" th:src="@{'/profile-images/' + ${profilePic}}"
+					style="
+		            width:100%;
+		            height:100%;
+		            border-radius:50%;
+		            object-fit:cover;">
+
+				<i th:unless="${profilePic != null and profilePic != ''}" class="fas fa-user">
+				</i>
+
+			</button>
+		</div>
+	</div>
+
+	<!-- DROPDOWN (outside navbar) -->
+	<div class="user-dropdown" id="userDropdown">
+		<div class="dd-name">
+			👤 <span th:text="${#authentication.name}">User</span>
+		</div>
+		<div class="dd-role">🛡️ CipherSentinel User</div>
+
+		<a href="/dashboard" class="dd-item">
+			<i class="fas fa-home"></i> Dashboard
+		</a>
+		<a href="/upload" class="dd-item">
+			<i class="fas fa-upload"></i> Upload Document
+		</a>
+		<a href="/documents" class="dd-item">
+			<i class="fas fa-file-alt"></i> My Documents
+		</a>
+		<a href="/anomalies" class="dd-item">
+			<i class="fas fa-exclamation-triangle"></i> Anomalies
+		</a>
+		<a href="/audit" class="dd-item">
+			<i class="fas fa-history"></i> Audit Trail
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dd-item">
+			<i class="fas fa-user-shield"></i>
+			Admin Dashboard
+		</a>
+		<a href="/profile" class="dd-item">
+			<i class="fas fa-user"></i>
+			Profile
+		</a>
+		<a href="/change-password" class="dd-item">
+			<i class="fas fa-key"></i>
+			Change Password
+		</a>
+		<a href="/about" class="dd-item">
+			<i class="fas fa-info-circle"></i>
+			About Us
+		</a>
+		<a href="/settings" class="dd-item"><i class="fas fa-cog"></i> Settings</a>
+
+		<hr class="dd-divider" />
+
+		<form th:action="@{/logout}" method="post" class="dd-logout-form">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<button type="submit" class="dd-logout">
+				<i class="fas fa-sign-out-alt"></i>
+				Logout
+			</button>
+		</form>
+	</div>
+
+	<div class="main-content">
+
+		<div class="page-title">
+			⚡ Admin Dashboard
+		</div>
+		<div class="page-sub">
+			Manage users and assign roles
+		</div>
+
+		<!-- Success/Error -->
+		<div th:if="${param.success}" class="alert-success-custom">
+			✅ Role updated successfully!
+		</div>
+		<div th:if="${param.error}" class="alert-error-custom" th:text="${param.error}">
+		</div>
+
+		<!-- Stats Grid -->
+		<div class="stats-grid">
+			<div class="stat-card">
+				<div class="stat-icon">👥</div>
+				<div class="stat-label">Total Users</div>
+				<div class="stat-value" style="color:rgb(0, 0, 255)" th:text="${totalUsers}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">📄</div>
+				<div class="stat-label">Total Documents</div>
+				<div class="stat-value" style="color:rgb(255, 255, 0)" th:text="${totalDocuments}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">🚨</div>
+				<div class="stat-label">Total Anomalies</div>
+				<div class="stat-value" style="color:rgb(255, 0, 128)" th:text="${totalAnomalies}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">⚡</div>
+				<div class="stat-label">Admins</div>
+				<div class="stat-value" style="color:#ff4c6a" th:text="${adminCount}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">📊</div>
+				<div class="stat-label">Managers</div>
+				<div class="stat-value" style="color:#ffc800" th:text="${managerCount}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">🏦</div>
+				<div class="stat-label">Officers</div>
+				<div class="stat-value" style="color:#00d4ff" th:text="${officerCount}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">🔍</div>
+				<div class="stat-label">Auditors</div>
+				<div class="stat-value" style="color:#7b61ff" th:text="${auditorCount}">0</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon">👤</div>
+				<div class="stat-label">Users</div>
+				<div class="stat-value" style="color:#a0b0c8" th:text="${userCount}">0</div>
+			</div>
+		</div>
+
+		<!-- RBAC Permissions Reference -->
+		<div class="rbac-card">
+			<div class="rbac-title">
+				🔐 Role Permissions Reference
+			</div>
+			<div class="rbac-row">
+				<div class="rbac-role">
+					<span class="role-badge role-ADMIN">
+						⚡ ADMIN
+					</span>
+				</div>
+				<div class="rbac-perms">
+					<span class="perm-tag">All Features</span>
+					<span class="perm-tag">Manage Users</span>
+					<span class="perm-tag">Assign Roles</span>
+					<span class="perm-tag">Delete Users</span>
+					<span class="perm-tag">All Reports</span>
+				</div>
+			</div>
+			<div class="rbac-row">
+				<div class="rbac-role">
+					<span class="role-badge role-MANAGER">
+						📊 MANAGER
+					</span>
+				</div>
+				<div class="rbac-perms">
+					<span class="perm-tag">Upload Docs</span>
+					<span class="perm-tag">View All Docs</span>
+					<span class="perm-tag">Download Reports</span>
+					<span class="perm-tag">View Audit</span>
+					<span class="perm-tag">View Analytics</span>
+				</div>
+			</div>
+			<div class="rbac-row">
+				<div class="rbac-role">
+					<span class="role-badge role-OFFICER">
+						🏦 OFFICER
+					</span>
+				</div>
+				<div class="rbac-perms">
+					<span class="perm-tag">Upload Docs</span>
+					<span class="perm-tag">Scan Documents</span>
+					<span class="perm-tag">Download Reports</span>
+					<span class="perm-tag">View Own Docs</span>
+				</div>
+			</div>
+			<div class="rbac-row">
+				<div class="rbac-role">
+					<span class="role-badge role-AUDITOR">
+						🔍 AUDITOR
+					</span>
+				</div>
+				<div class="rbac-perms">
+					<span class="perm-tag">View All Anomalies</span>
+					<span class="perm-tag">View Audit Trail</span>
+					<span class="perm-tag">Export Logs</span>
+					<span class="perm-tag">Read Only</span>
+				</div>
+			</div>
+			<div class="rbac-row">
+				<div class="rbac-role">
+					<span class="role-badge role-ANALYST">
+						📈 ANALYST
+					</span>
+				</div>
+				<div class="rbac-perms">
+					<span class="perm-tag">View Analytics</span>
+					<span class="perm-tag">View Anomalies</span>
+					<span class="perm-tag">Export CSV</span>
+					<span class="perm-tag">View Reports</span>
+				</div>
+			</div>
+			<div class="rbac-row">
+				<div class="rbac-role">
+					<span class="role-badge role-USER">
+						👤 USER
+					</span>
+				</div>
+				<div class="rbac-perms">
+					<span class="perm-tag">Upload Own Docs</span>
+					<span class="perm-tag">View Own Docs</span>
+					<span class="perm-tag">Basic Scan</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Users Table -->
+		<div class="table-card">
+			<div class="table-header">
+				<span class="table-title">
+					👥 All Users
+				</span>
+				<span style="color:#7a8aaa;
+                         font-size:0.8rem;">
+					<span th:text="${totalUsers}">0
+					</span> registered users
+				</span>
+			</div>
+
+			<div class="table-card">
+				<div class="table-responsive">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Username</th>
+								<th>Current Role</th>
+								<th>Assign New Role</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="u : ${users}">
+								<td style="color:#7a8aaa;" th:text="${u.id}"></td>
+
+								<td>
+									<span th:text="${u.username}">
+									</span>
+									<span th:if="${u.username ==
+                            currentUser.username}" class="you-tag">
+										YOU
+									</span>
+								</td>
+
+								<td>
+									<span th:class="
+                            'role-badge role-'
+                            + ${u.role}" th:text="${u.role}">
+									</span>
+								</td>
+
+								<td>
+									<div th:if="${u.username !=
+                            currentUser.username}">
+										<form th:action="@{/admin/change-role}" method="post" style="display:flex;
+                                         gap:6px;
+                                         align-items:center;">
+											<input type="hidden" th:name="${_csrf.parameterName}"
+												th:value="${_csrf.token}" />
+											<input type="hidden" name="userId" th:value="${u.id}" />
+											<select name="newRole" class="role-select">
+												<option value="USER" th:selected="${u.role == 'USER'}">
+													👤 USER
+												</option>
+												<option value="OFFICER" th:selected="${u.role == 'OFFICER'}">
+													🏦 OFFICER
+												</option>
+												<option value="AUDITOR" th:selected="${u.role == 'AUDITOR'}">
+													🔍 AUDITOR
+												</option>
+												<option value="MANAGER" th:selected="${u.role == 'MANAGER'}">
+													📊 MANAGER
+												</option>
+												<option value="ANALYST" th:selected="${u.role == 'ANALYST'}">
+													📈 ANALYST
+												</option>
+												<option value="ADMIN" th:selected="${u.role == 'ADMIN'}">
+													⚡ ADMIN
+												</option>
+												<option value="DEACTIVATED" th:selected="${u.role == 'DEACTIVATED'}">
+													🚫 DEACTIVATED
+												</option>
+											</select>
+											<button type="submit" class="btn-role-save">
+												<i class="fas fa-check">
+												</i> Save
+											</button>
+										</form>
+									</div>
+									<span th:if="${u.username ==
+                            currentUser.username}" style="color:#7a8aaa;
+                                     font-size:0.78rem;">
+										Cannot change own role
+									</span>
+								</td>
+
+								<td>
+									<div th:if="${u.username !=
+                            currentUser.username}">
+										<form th:action="@{/admin/delete-user}" method="post" onsubmit="return confirm(
+                                      'Delete user: '
+                                      + this.dataset.name
+                                      + '?');" th:data-name="${u.username}">
+											<input type="hidden" th:name="${_csrf.parameterName}"
+												th:value="${_csrf.token}" />
+											<input type="hidden" name="userId" th:value="${u.id}" />
+											<button type="submit" class="btn-delete">
+												<i class="fas fa-trash-alt">
+												</i> Delete
+											</button>
+										</form>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="mobile-user-card">
+
+					<div class="user-card" th:each="u : ${users}">
+
+						<div class="user-card-row">
+							<span class="user-card-label">ID:</span>
+							<span th:text="${u.id}"></span>
+						</div>
+
+						<div class="user-card-row">
+							<span class="user-card-label">Username:</span>
+							<span th:text="${u.username}"></span>
+						</div>
+
+						<div class="user-card-row">
+							<span class="user-card-label">Role:</span>
+
+							<span th:class="
+		              'role-badge role-' + ${u.role}" th:text="${u.role}">
+							</span>
+						</div>
+
+					</div>
+
+				</div>
+
+				<!-- ADD RECENT AUDIT EVENTS HERE -->
+
+				<div class="section-card">
+
+					<div class="d-flex justify-content-between align-items-center mb-3">
+
+						<div class="section-title mb-0">
+							Recent Security Events
+						</div>
+
+						<a href="/export-audit" class="export-btn">
+
+							<i class="fas fa-file-csv"></i>
+							Export Audit CSV
+
+						</a>
+
+					</div>
+
+					<table class="table">
+
+						<tr>
+							<th>ID</th>
+							<th>User Name</th>
+							<th>Role</th>
+							<th>Description</th>
+							<th>Action</th>
+							<th>Time</th>
+						</tr>
+
+						<tr th:each="log : ${recentLogs}">
+							<td th:text="${log.userId}"></td>
+
+							<td th:text="${log.username}"></td>
+
+							<td>
+								<span class="badge bg-info" th:text="${log.userRole}">
+								</span>
+							</td>
+
+							<td th:text="${log.details}"></td>
+
+							<td>
+
+								<!-- Login -->
+								<span th:if="${log.action == 'USER_LOGIN'}" style="color:#00ff88;font-weight:700;">
+									🟢 USER_LOGIN
+								</span>
+
+								<!-- Logout -->
+								<span th:if="${log.action == 'USER_LOGOUT'}" style="color:#00d4ff;font-weight:700;">
+									🔵 USER_LOGOUT
+								</span>
+
+								<!-- Failed Login -->
+								<span th:if="${log.action == 'LOGIN_FAILED'}" style="color:#ff4c6a;font-weight:700;">
+									🔴 LOGIN_FAILED
+								</span>
+
+								<!-- Role Changed -->
+								<span th:if="${log.action == 'ROLE_CHANGED'}" style="color:#ffc800;font-weight:700;">
+									🟡 ROLE_CHANGED
+								</span>
+
+								<!-- User Deleted -->
+								<span th:if="${log.action == 'USER_DELETED'}" style="color:#ff4c6a;font-weight:700;">
+									🚫 USER_DELETED
+								</span>
+
+								<!-- Document Uploaded -->
+								<span th:if="${log.action == 'DOCUMENT_UPLOADED'}"
+									style="color:#00ff88;font-weight:700;">
+									📤 DOCUMENT_UPLOADED
+								</span>
+
+								<!-- Document Viewed -->
+								<span th:if="${log.action == 'DOCUMENT_VIEWED'}" style="color:#7b61ff;font-weight:700;">
+									👁 DOCUMENT_VIEWED
+								</span>
+
+								<!-- Document Downloaded -->
+								<span th:if="${log.action == 'DOCUMENT_DOWNLOADED'}"
+									style="color:#00d4ff;font-weight:700;">
+									📥 DOCUMENT_DOWNLOADED
+								</span>
+
+								<!-- Document Deleted -->
+								<span th:if="${log.action == 'DOCUMENT_DELETED'}"
+									style="color:#ff4c6a;font-weight:700;">
+									🗑 DOCUMENT_DELETED
+								</span>
+
+								<!-- Anomaly Detected -->
+								<span th:if="${log.action == 'ANOMALY_DETECTED'}"
+									style="color:#ff4c6a;font-weight:700;">
+									⚠ ANOMALY_DETECTED
+								</span>
+
+								<!-- Report Downloaded -->
+								<span th:if="${log.action == 'REPORT_DOWNLOADED'}"
+									style="color:#00d4ff;font-weight:700;">
+									📊 REPORT_DOWNLOADED
+								</span>
+
+								<!-- Password Changed -->
+								<span th:if="${log.action == 'PASSWORD_CHANGED'}"
+									style="color:#ffc800;font-weight:700;">
+									🔑 PASSWORD_CHANGED
+								</span>
+
+								<!-- Profile Updated -->
+								<span th:if="${log.action == 'PROFILE_UPDATED'}" style="color:#7b61ff;font-weight:700;">
+									👤 PROFILE_UPDATED
+								</span>
+
+								<!-- Default -->
+								<span th:unless="${log.action == 'USER_LOGIN'
+					        or log.action == 'USER_LOGOUT'
+					        or log.action == 'LOGIN_FAILED'
+					        or log.action == 'ROLE_CHANGED'
+					        or log.action == 'USER_DELETED'
+					        or log.action == 'DOCUMENT_UPLOADED'
+					        or log.action == 'DOCUMENT_VIEWED'
+					        or log.action == 'DOCUMENT_DOWNLOADED'
+					        or log.action == 'DOCUMENT_DELETED'
+					        or log.action == 'ANOMALY_DETECTED'
+					        or log.action == 'REPORT_DOWNLOADED'
+					        or log.action == 'PASSWORD_CHANGED'
+					        or log.action == 'PROFILE_UPDATED'}" th:text="${log.action}" style="color:#c8d8f0;font-weight:600;">
+								</span>
+
+							</td>
+							<td th:text="${#temporals.format(
+					           log.timestamp,
+					           'dd-MM-yyyy HH:mm')}">
+							</td>
+						</tr>
+					</table>
+
+				</div>
+				<div class="mobile-audit-card">
+
+					<div class="user-card" th:each="log : ${recentLogs}">
+
+						<div class="user-card-row">
+							<span class="user-card-label">
+								User:
+							</span>
+							<span th:text="${log.username}">
+							</span>
+						</div>
+
+						<div class="user-card-row">
+							<span class="user-card-label">
+								Role:
+							</span>
+							<span th:text="${log.userRole}">
+							</span>
+						</div>
+
+						<div class="user-card-row">
+							<span class="user-card-label">
+								Action:
+							</span>
+							<span th:text="${log.action}">
+							</span>
+						</div>
+
+						<div class="user-card-row">
+							<span class="user-card-label">
+								Time:
+							</span>
+							<span th:text="${#temporals.format(log.timestamp,'dd-MM-yyyy HH:mm')}">
+							</span>
+						</div>
+
+					</div>
+
+				</div>
+			</div>
+			<script>
+				// USER DROPDOWN - FIXED
+				const userBtn = document.getElementById('userBtn');
+				const userDropdown = document.getElementById('userDropdown');
+
+				userBtn.addEventListener('click', function (e) {
+					e.stopPropagation();
+					userDropdown.classList.toggle('open');
+				});
+
+				document.addEventListener('click', function (e) {
+					if (!userBtn.contains(e.target) &&
+						!userDropdown.contains(e.target)) {
+						userDropdown.classList.remove('open');
+					}
+				});
+
+
+			</script>
+
+</body>
+
+</html>

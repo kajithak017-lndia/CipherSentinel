@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>View Document - CipherSentinel</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<script src="/js/chart.umd.js"></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			background: #050914;
+			color: white;
+			font-family: 'Segoe UI', sans-serif;
+			min-height: 100vh;
+		}
+
+		.grid-bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 0;
+			background-image:
+				linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+			background-size: 40px 40px;
+			pointer-events: none;
+		}
+
+		/* NAVBAR */
+		.navbar-custom {
+			background: rgba(13, 21, 38, 0.98);
+			border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 0 30px;
+			height: 60px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 999;
+		}
+
+		.nav-brand {
+			font-size: 1.2rem;
+			font-weight: 800;
+			color: #00d4ff;
+			letter-spacing: 2px;
+		}
+
+		.nav-brand span {
+			color: #7b61ff;
+		}
+
+		.nav-right {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			position: relative;
+		}
+
+		.btn-nav {
+			background: transparent;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			padding: 6px 14px;
+			border-radius: 6px;
+			text-decoration: none;
+			font-size: 0.82rem;
+			transition: all 0.2s;
+			white-space: nowrap;
+		}
+
+		.btn-nav:hover {
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+		}
+
+		/* USER ICON */
+		.user-btn {
+			width: 36px;
+			height: 36px;
+			background: linear-gradient(135deg, #00d4ff, #7b61ff);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			border: none;
+			outline: none;
+			flex-shrink: 0;
+			position: relative;
+			z-index: 1001;
+		}
+
+		.user-btn i {
+			color: white;
+			font-size: 0.9rem;
+			pointer-events: none;
+		}
+
+		/* DROPDOWN */
+		.user-dropdown {
+			position: fixed;
+			top: 65px;
+			right: 20px;
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			border-radius: 12px;
+			padding: 16px;
+			width: 220px;
+			display: none;
+			z-index: 9999;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+		}
+
+		.user-dropdown.open {
+			display: block !important;
+		}
+
+		.dd-name {
+			color: white;
+			font-weight: 600;
+			font-size: 0.92rem;
+			margin-bottom: 3px;
+		}
+
+		.dd-role {
+			color: #00d4ff;
+			font-size: 0.75rem;
+			margin-bottom: 12px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+		}
+
+		.dd-item {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #c8d8f0;
+			text-decoration: none;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-item:hover {
+			background: rgba(0, 212, 255, 0.08);
+			color: #00d4ff;
+		}
+
+		.dd-item i {
+			width: 14px;
+			text-align: center;
+		}
+
+		.dd-divider {
+			border: none;
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			margin: 8px 0;
+		}
+
+		.dd-logout-form {
+			margin: 0;
+		}
+
+		.dd-logout {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #ff4c6a;
+			background: none;
+			border: none;
+			width: 100%;
+			cursor: pointer;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-logout:hover {
+			background: rgba(255, 76, 106, 0.08);
+		}
+
+		.dd-logout i {
+			width: 14px;
+		}
+
+		.main-content {
+			position: relative;
+			z-index: 1;
+			padding: 30px;
+		}
+
+		.detail-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			border-radius: 16px;
+			padding: 30px;
+			margin-bottom: 24px;
+		}
+
+		.detail-row {
+			display: flex;
+			justify-content: space-between;
+			padding: 12px 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		}
+
+		.detail-label {
+			color: #7a8aaa;
+			font-size: 0.85rem;
+		}
+
+		.detail-value {
+			color: #00d4ff;
+			font-size: 0.9rem;
+			font-weight: 500;
+		}
+
+		.trust-card {
+			background: #081221;
+			border: 1px solid rgba(0, 212, 255, .2);
+			border-radius: 12px;
+			padding: 20px;
+			margin-bottom: 20px;
+			text-align: center;
+		}
+
+		.trust-score-card {
+			background: #081221;
+			border: 1px solid rgba(0, 212, 255, .2);
+			border-radius: 12px;
+			padding: 20px;
+			margin-bottom: 20px;
+			text-align: center;
+		}
+
+		.trust-label {
+			color: #7a8aaa;
+			font-size: .9rem;
+			margin-bottom: 8px;
+		}
+
+		.trust-value {
+			font-size: 2rem;
+			font-weight: 800;
+			color: #00ff88;
+		}
+
+		.badge-safe {
+			background: rgba(0, 255, 136, 0.15);
+			color: #00ff88;
+			border: 1px solid rgba(0, 255, 136, 0.3);
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 0.78rem;
+			font-weight: 600;
+		}
+
+		.badge-unsafe {
+			background: rgba(255, 76, 106, 0.15);
+			color: #ff4c6a;
+			border: 1px solid rgba(255, 76, 106, 0.3);
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 0.78rem;
+			font-weight: 600;
+		}
+
+		.issue-item {
+			background: rgba(255, 76, 106, 0.05);
+			border: 1px solid rgba(255, 76, 106, 0.2);
+			border-radius: 10px;
+			padding: 16px 20px;
+			margin-bottom: 12px;
+		}
+
+		.issue-type {
+			color: #ff4c6a;
+			font-weight: 600;
+			font-size: 0.9rem;
+			margin-bottom: 4px;
+		}
+
+		.issue-desc {
+			color: #e8f0fe;
+			font-size: 0.85rem;
+			margin-bottom: 4px;
+		}
+
+		.issue-severity {
+			font-size: 0.78rem;
+		}
+
+		.section-title {
+			color: #00d4ff;
+			font-size: 0.8rem;
+			letter-spacing: 3px;
+			text-transform: uppercase;
+			margin-bottom: 16px;
+		}
+
+		.btn-rescan {
+			background: linear-gradient(135deg, #7b61ff, #00d4ff);
+			border: none;
+			border-radius: 8px;
+			color: white;
+			padding: 10px 24px;
+			text-decoration: none;
+			font-size: 0.9rem;
+			font-weight: 600;
+			display: inline-block;
+			margin-right: 10px;
+		}
+
+		.btn-back {
+			background: linear-gradient(135deg, #7b61ff, #00d4ff);
+			border: none;
+			border-radius: 8px;
+			color: white;
+			padding: 10px 24px;
+			text-decoration: none;
+			font-size: 0.9rem;
+			font-weight: 600;
+			display: inline-block;
+			margin-right: 10px;
+		}
+
+		.btn-edit {
+			background: linear-gradient(135deg,
+					#ffc800,
+					#ff9a00);
+			border: none;
+			border-radius: 8px;
+			color: white;
+			padding: 10px 24px;
+			text-decoration: none;
+			font-size: 0.9rem;
+			font-weight: 600;
+			display: inline-block;
+			margin-right: 10px;
+		}
+
+		@media (max-width:768px) {
+
+			.navbar-custom {
+				padding: 15px;
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 12px;
+				height: auto;
+			}
+
+			.nav-brand {
+				width: 100%;
+				font-size: 1.05rem;
+				position: relative;
+			}
+
+			.nav-right {
+				width: 100%;
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 8px;
+				position: relative;
+			}
+
+			.btn-nav {
+				width: 100%;
+				text-align: center;
+				padding: 10px;
+				font-size: 0.8rem;
+			}
+
+			.user-btn {
+				position: absolute;
+				top: -52px;
+				right: 0;
+				width: 42px;
+				height: 42px;
+			}
+
+			.user-dropdown {
+				right: 10px;
+				top: 65px;
+				width: 220px;
+				max-width: 90%;
+			}
+
+			.main-content {
+				padding: 15px;
+			}
+
+			.detail-card {
+				padding: 18px;
+			}
+
+			.detail-row {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 6px;
+			}
+
+			.detail-label {
+				font-size: 0.75rem;
+			}
+
+			.detail-value {
+				font-size: 0.85rem;
+				word-break: break-word;
+			}
+
+			.trust-card,
+			.trust-score-card {
+				padding: 16px;
+			}
+
+			.trust-value {
+				font-size: 1.5rem;
+			}
+
+			.issue-item {
+				padding: 14px;
+			}
+
+			.issue-type {
+				font-size: 0.85rem;
+				word-break: break-word;
+			}
+
+			.issue-desc {
+				font-size: 0.8rem;
+				word-break: break-word;
+			}
+
+			.section-title {
+				font-size: 0.72rem;
+				letter-spacing: 2px;
+			}
+
+			.btn-rescan,
+			.btn-edit,
+			.btn-back {
+				width: 100%;
+				display: block;
+				text-align: center;
+				margin: 0 0 10px 0;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="grid-bg"></div>
+	<div class="navbar-custom">
+		<div class="nav-brand">🛡️ CIPHER<span>SENTINEL</span></div>
+		<div class="nav-right">
+			<a href="/dashboard" class="btn-nav">
+				<i class="fas fa-home"></i> Dashboard
+			</a>
+			<a href="/documents" class="btn-nav">
+				<i class="fas fa-file-alt"></i> Documents
+			</a>
+			<!-- USER BUTTON -->
+			<button class="user-btn" id="userBtn" type="button">
+
+				<img th:if="${profilePic != null and profilePic != ''}" th:src="@{'/profile-images/' + ${profilePic}}"
+					style="
+			            width:100%;
+			            height:100%;
+			            border-radius:50%;
+			            object-fit:cover;">
+
+				<i th:unless="${profilePic != null and profilePic != ''}" class="fas fa-user">
+				</i>
+
+			</button>
+			</button>
+		</div>
+	</div>
+
+	<!-- DROPDOWN (outside navbar) -->
+	<div class="user-dropdown" id="userDropdown">
+		<div class="dd-name">
+			👤 <span th:text="${#authentication.name}">User</span>
+		</div>
+		<div class="dd-role">🛡️ CipherSentinel User</div>
+
+		<a href="/dashboard" class="dd-item">
+			<i class="fas fa-home"></i> Dashboard
+		</a>
+		<a href="/upload" class="dd-item">
+			<i class="fas fa-upload"></i> Upload Document
+		</a>
+		<a href="/documents" class="dd-item">
+			<i class="fas fa-file-alt"></i> My Documents
+		</a>
+		<a href="/anomalies" class="dd-item">
+			<i class="fas fa-exclamation-triangle"></i> Anomalies
+		</a>
+		<a href="/audit" class="dd-item">
+			<i class="fas fa-history"></i> Audit Trail
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dd-item">
+			<i class="fas fa-user-shield"></i>
+			Admin Dashboard
+		</a>
+		<a href="/profile" class="dd-item">
+			<i class="fas fa-user"></i>
+			Profile
+		</a>
+		<a href="/change-password" class="dd-item">
+			<i class="fas fa-key"></i>
+			Change Password
+		</a>
+		<a href="/about" class="dd-item">
+			<i class="fas fa-info-circle"></i>
+			About Us
+		</a>
+		<a href="/settings" class="dd-item">
+			<i class="fas fa-cog"></i>
+			Settings
+		</a>
+
+		<hr class="dd-divider" />
+
+		<form th:action="@{/logout}" method="post" class="dd-logout-form">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<button type="submit" class="dd-logout">
+				<i class="fas fa-sign-out-alt"></i>
+				Logout
+			</button>
+		</form>
+	</div>
+	<div class="grid-bg"></div>
+
+
+	<div class="main-content">
+		<div class="section-title">Document Details</div>
+
+		<div class="detail-card">
+			<div class="detail-row">
+				<span class="detail-label">File Name</span>
+				<span class="detail-value" th:text="${document.fileName}"></span>
+			</div>
+			<div class="detail-row">
+				<span class="detail-label">Document Type</span>
+				<span class="detail-value" th:text="${document.documentType}"></span>
+			</div>
+			<div class="detail-row">
+				<span class="detail-label">Upload Time</span>
+				<span class="detail-value" th:text="${document.uploadTime}"></span>
+			</div>
+			<div class="detail-row">
+				<span class="detail-label">Status</span>
+				<span>
+					<span th:if="${document.status == 'SAFE'}" class="badge-safe">✅ SAFE</span>
+					<span th:if="${document.status != 'SAFE'}" class="badge-unsafe">❌ UNSAFE</span>
+				</span>
+			</div>
+		</div>
+		<!-- IMAGE ANALYSIS CARD -->
+
+		<div class="trust-score-card">
+
+			<div class="trust-label">
+				Image Analysis
+			</div>
+
+			<div th:if="${isImage}" class="trust-value" style="color:#00ff88;">
+
+				OCR Verified
+
+			</div>
+
+			<div th:unless="${isImage}" class="trust-value" style="color:#7a8aaa;">
+
+				--
+
+			</div>
+			<div th:unless="${isImage}" style="
+		         color:#7a8aaa;
+		         font-size:12px;
+		         margin-top:10px;">
+
+				No image data available
+
+			</div>
+
+		</div>
+
+
+		<!-- DOCUMENT TRUST SCORE CARD -->
+
+		<div class="trust-card">
+
+			<div class="trust-label">
+				Document Trust Score
+			</div>
+
+			<div th:if="${!isImage}" class="trust-value" th:style="${
+		            trustScore >= 80 ?
+		            'color:#00ff88;' :
+		            trustScore >= 50 ?
+		            'color:#ffc800;' :
+		            'color:#ff4c6a;'
+		         }" th:text="${trustScore + '/100'}">
+
+				100/100
+
+			</div>
+
+			<div th:if="${isImage}" class="trust-value" style="color:#7a8aaa;">
+
+				--
+
+			</div>
+
+			<div th:if="${isImage}" style="
+		         color:#7a8aaa;
+		         font-size:12px;
+		         margin-top:10px;">
+
+				No document analysis available
+
+			</div>
+
+		</div>
+		<div class="trust-card">
+
+			<div class="trust-label">
+				Similarity Score
+			</div>
+
+			<div class="trust-value" style="color:#00d4ff;" th:text="${document.similarityScore + '%'}">
+
+				0%
+
+			</div>
+
+		</div>
+
+		<div class="section-title">Issues Found</div>
+
+		<div th:if="${issues.empty}" style="color:#00ff88; padding:20px; 
+                background:rgba(0,255,136,0.05);
+                border:1px solid rgba(0,255,136,0.2);
+                border-radius:10px; 
+                text-align:center;">
+			✅ No issues found — Document is SAFE!
+		</div>
+
+		<div th:each="issue : ${issues}" class="issue-item">
+			<div class="issue-type" th:text="${issue.anomalyType}"></div>
+			<div class="issue-desc" th:text="${issue.description}"></div>
+			<span class="issue-severity" th:style="${issue.severity == 'HIGH'} 
+                  ? 'color:#ff4c6a' : 'color:#ffc800'" th:text="'Severity: ' + ${issue.severity}">
+			</span>
+		</div>
+
+		<div style="margin-top:24px;">
+
+			<a th:href="@{/rescan/{id}(id=${document.id})}" class="btn-rescan">
+				🔄 Re-scan Document
+			</a>
+
+			<a th:if="${document.fileType == 'text/plain'}" th:href="@{/edit-document/{id}(id=${document.id})}"
+				class="btn-edit">
+				✏️ Edit Document
+			</a>
+			<a href="/documents" class="btn-back">
+				← Back to Documents
+			</a>
+
+		</div>
+	</div>
+	<script>
+		// USER DROPDOWN - FIXED
+		const userBtn = document.getElementById('userBtn');
+		const userDropdown = document.getElementById('userDropdown');
+
+		userBtn.addEventListener('click', function (e) {
+			e.stopPropagation();
+			userDropdown.classList.toggle('open');
+		});
+
+		document.addEventListener('click', function (e) {
+			if (!userBtn.contains(e.target) &&
+				!userDropdown.contains(e.target)) {
+				userDropdown.classList.remove('open');
+			}
+		});
+
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Upload - CipherSentinel</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			background: #050914;
+			color: white;
+			font-family: 'Segoe UI', sans-serif;
+			min-height: 100vh;
+		}
+
+		.grid-bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 0;
+			background-image:
+				linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+			background-size: 40px 40px;
+			pointer-events: none;
+		}
+
+		.navbar-custom {
+			background: rgba(13, 21, 38, 0.95);
+			border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 15px 30px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 100;
+		}
+
+		.nav-brand {
+			font-size: 1.3rem;
+			font-weight: 800;
+			color: #00d4ff;
+		}
+
+		.nav-brand span {
+			color: #7b61ff;
+		}
+
+		.nav-right {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+		}
+
+		.btn-nav {
+			background: transparent;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			color: #00d4ff;
+			padding: 6px 16px;
+			border-radius: 6px;
+			text-decoration: none;
+			font-size: 0.85rem;
+		}
+
+		.user-icon {
+			width: 42px;
+			height: 42px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			background: linear-gradient(135deg, #00d4ff, #7b61ff);
+
+			border-radius: 50%;
+			transition: all .3s ease;
+		}
+
+		.user-icon i {
+			color: white;
+			font-size: 1rem;
+		}
+
+		.navbar-profile-pic {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: 50%;
+		}
+
+		/* DROPDOWN */
+		.user-dropdown {
+			position: fixed;
+			top: 65px;
+			right: 20px;
+			background: #0d1526;
+			border: 1px solid rgba(0, 212, 255, 0.3);
+			border-radius: 12px;
+			padding: 16px;
+			width: 220px;
+			display: none;
+			z-index: 9999;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+		}
+
+		.user-dropdown.open {
+			display: block !important;
+		}
+
+		.dd-name {
+			color: white;
+			font-weight: 600;
+			font-size: 0.92rem;
+			margin-bottom: 3px;
+		}
+
+		.dd-role {
+			color: #00d4ff;
+			font-size: 0.75rem;
+			margin-bottom: 12px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+		}
+
+		.dd-item {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #c8d8f0;
+			text-decoration: none;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-item:hover {
+			background: rgba(0, 212, 255, 0.08);
+			color: #00d4ff;
+		}
+
+		.dd-item i {
+			width: 14px;
+			text-align: center;
+		}
+
+		.dd-divider {
+			border: none;
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			margin: 8px 0;
+		}
+
+		.dd-logout-form {
+			margin: 0;
+		}
+
+		.dd-logout {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 10px;
+			color: #ff4c6a;
+			background: none;
+			border: none;
+			width: 100%;
+			cursor: pointer;
+			border-radius: 7px;
+			font-size: 0.84rem;
+			transition: all 0.15s;
+		}
+
+		.dd-logout:hover {
+			background: rgba(255, 76, 106, 0.08);
+		}
+
+		.dd-logout i {
+			width: 14px;
+		}
+
+		.main-content {
+			position: relative;
+			z-index: 1;
+			padding: 40px 30px;
+			max-width: 1400px;
+			margin: auto;
+		}
+
+		.page-title {
+			font-size: 1.5rem;
+			font-weight: 700;
+			color: #00d4ff;
+			margin-bottom: 4px;
+		}
+
+		.page-sub {
+			color: #7a8aaa;
+			font-size: 0.85rem;
+			margin-bottom: 30px;
+		}
+
+		/* Upload Card */
+		.upload-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			border-radius: 16px;
+			padding: 40px;
+			max-width: 100%;
+			width: 100%;
+		}
+
+		/* Doc Type Selector */
+		.doc-type-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 12px;
+			margin-bottom: 24px;
+		}
+
+		.doc-type-option {
+			background: rgba(255, 255, 255, 0.03);
+			border: 2px solid rgba(0, 212, 255, 0.15);
+			border-radius: 12px;
+			padding: 16px 12px;
+			text-align: center;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.doc-type-option:hover {
+			border-color: rgba(0, 212, 255, 0.4);
+			background: rgba(0, 212, 255, 0.05);
+		}
+
+		.doc-type-option.selected {
+			border-color: #00d4ff;
+			background: rgba(0, 212, 255, 0.08);
+		}
+
+		.doc-type-option input {
+			display: none;
+		}
+
+		.doc-type-icon {
+			font-size: 1.8rem;
+			margin-bottom: 6px;
+		}
+
+		.doc-type-label {
+			font-size: 0.78rem;
+			color: #7a8aaa;
+		}
+
+		.doc-type-option.selected .doc-type-label {
+			color: #00d4ff;
+		}
+
+		/* File Drop Zone */
+		.drop-zone {
+			border: 2px dashed rgba(0, 212, 255, 0.3);
+			border-radius: 12px;
+			padding: 30px 20px;
+			text-align: center;
+			cursor: pointer;
+			transition: all 0.3s;
+			position: relative;
+			margin-bottom: 24px;
+		}
+
+		.drop-zone:hover,
+		.drop-zone.dragover {
+			border-color: #00d4ff;
+			background: rgba(0, 212, 255, 0.03);
+		}
+
+		.drop-zone input {
+			position: absolute;
+			inset: 0;
+			opacity: 0;
+			cursor: pointer;
+			width: 100%;
+		}
+
+		.drop-icon {
+			font-size: 3rem;
+			margin-bottom: 12px;
+			color: #00d4ff;
+			opacity: 0.6;
+		}
+
+		.drop-text {
+			color: #7a8aaa;
+			font-size: 0.9rem;
+		}
+
+		.drop-text span {
+			color: #00d4ff;
+			font-weight: 600;
+		}
+
+		.file-selected {
+			background: rgba(0, 212, 255, 0.06);
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			border-radius: 8px;
+			padding: 12px 16px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-top: 12px;
+			display: none;
+		}
+
+		.file-selected.show {
+			display: flex;
+		}
+
+		.file-selected-name {
+			color: white;
+			font-size: 0.85rem;
+		}
+
+		.file-selected-size {
+			color: #7a8aaa;
+			font-size: 0.78rem;
+		}
+
+		/* Progress Bar */
+		.progress-wrap {
+			margin-bottom: 20px;
+			display: none;
+		}
+
+		.progress-wrap.show {
+			display: block;
+		}
+
+		.progress-label {
+			display: flex;
+			justify-content: space-between;
+			color: #7a8aaa;
+			font-size: 0.8rem;
+			margin-bottom: 8px;
+		}
+
+		.progress-bar-custom {
+			height: 6px;
+			background: rgba(255, 255, 255, 0.05);
+			border-radius: 3px;
+			overflow: hidden;
+		}
+
+		.progress-fill {
+			height: 100%;
+			background: linear-gradient(90deg, #00d4ff, #7b61ff);
+			border-radius: 3px;
+			width: 0%;
+			transition: width 0.3s;
+		}
+
+		.btn-scan {
+			background: linear-gradient(135deg, #00d4ff, #7b61ff);
+			border: none;
+			border-radius: 10px;
+			color: white;
+			font-weight: 700;
+			padding: 16px;
+			width: 100%;
+			font-size: 1rem;
+			letter-spacing: 1px;
+			transition: all 0.3s;
+			cursor: pointer;
+		}
+
+		.btn-scan:hover {
+			box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+			transform: translateY(-2px);
+		}
+
+		/* Alerts */
+		.alert-success-custom {
+			background: rgba(0, 255, 136, 0.08);
+			border: 1px solid rgba(0, 255, 136, 0.25);
+			color: #00ff88;
+			border-radius: 10px;
+			padding: 14px 20px;
+			margin-bottom: 20px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.alert-error-custom {
+			background: rgba(255, 76, 106, 0.08);
+			border: 1px solid rgba(255, 76, 106, 0.25);
+			color: #ff4c6a;
+			border-radius: 10px;
+			padding: 14px 20px;
+			margin-bottom: 20px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		/* Info Cards */
+		.info-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 16px;
+			margin-top: 20px;
+			width: 100%;
+			max-width: 100%;
+		}
+
+		.info-card {
+			background: rgba(13, 21, 38, 0.9);
+			border: 1px solid rgba(0, 212, 255, 0.15);
+			border-radius: 12px;
+			padding: 20px;
+			text-align: center;
+		}
+
+		.info-card-icon {
+			font-size: 1.5rem;
+			margin-bottom: 8px;
+		}
+
+		.info-card-title {
+			color: #00d4ff;
+			font-size: 0.82rem;
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+
+		.info-card-text {
+			color: #7a8aaa;
+			font-size: 0.75rem;
+		}
+
+		.form-label-custom {
+			color: #7a8aaa;
+			font-size: 0.82rem;
+			margin-bottom: 10px;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		@media (max-width:768px) {
+
+			.navbar-custom {
+				padding: 15px;
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 12px;
+			}
+
+			.nav-brand {
+				font-size: 1.05rem;
+				width: 100%;
+				position: relative;
+			}
+
+			.nav-right {
+				width: 100%;
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 8px;
+				position: relative;
+			}
+
+			.btn-nav {
+				width: 100%;
+				text-align: center;
+				padding: 10px;
+				font-size: 0.8rem;
+			}
+
+			.user-icon {
+				position: absolute;
+				top: -52px;
+				right: 0;
+				width: 42px;
+				height: 42px;
+			}
+
+			.user-dropdown {
+				right: 10px;
+				top: 65px;
+				width: 220px;
+				max-width: 90%;
+			}
+
+			.main-content {
+				padding: 15px;
+			}
+
+			.page-title {
+				font-size: 1.3rem;
+				text-align: center;
+			}
+
+			.page-sub {
+				text-align: center;
+				font-size: 0.8rem;
+				margin-bottom: 20px;
+			}
+
+			.upload-card {
+				padding: 20px 15px;
+			}
+
+			.doc-type-grid {
+				grid-template-columns: 1fr;
+				gap: 10px;
+			}
+
+			.doc-type-option {
+				padding: 14px;
+			}
+
+			.drop-zone {
+				padding: 25px 15px;
+			}
+
+			.drop-icon {
+				font-size: 2.2rem;
+			}
+
+			.drop-text {
+				font-size: 0.82rem;
+			}
+
+			.file-selected {
+				flex-wrap: wrap;
+				gap: 8px;
+			}
+
+			.file-selected-name {
+				word-break: break-word;
+			}
+
+			.btn-scan {
+				padding: 14px;
+				font-size: 0.9rem;
+			}
+
+			.info-grid {
+				grid-template-columns: 1fr;
+				gap: 12px;
+			}
+
+			.info-card {
+				padding: 16px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="grid-bg"></div>
+
+	<!-- Navbar -->
+	<div class="navbar-custom">
+		<div class="nav-brand">🛡️ CIPHER<span>SENTINEL</span></div>
+		<div class="nav-right">
+			<a href="/dashboard" class="btn-nav">
+				<i class="fas fa-home"></i> Dashboard
+			</a>
+			<a href="/documents" class="btn-nav">
+				<i class="fas fa-file-alt"></i> Documents
+			</a>
+			<div class="user-icon" onclick="toggleDropdown()">
+				<img th:if="${profilePic != null and profilePic != ''}" th:src="@{'/profile-images/' + ${profilePic}}"
+					alt="Profile" class="navbar-profile-pic" />
+
+				<i th:unless="${profilePic != null and profilePic != ''}" class="fas fa-user"></i>
+
+			</div>
+		</div>
+	</div>
+
+	<!-- User Dropdown -->
+	<div class="user-dropdown" id="userDropdown">
+		<div class="dd-name">👤 Welcome!</div>
+		<div class="dd-role">🛡️ CipherSentinel User</div>
+		<a href="/dashboard" class="dd-item">
+			<i class="fas fa-home"></i> Dashboard
+		</a>
+		<a href="/upload" class="dd-item">
+			<i class="fas fa-upload"></i> Upload Document
+		</a>
+		<a href="/documents" class="dd-item">
+			<i class="fas fa-file-alt"></i> My Documents
+		</a>
+		<a href="/anomalies" class="dd-item">
+			<i class="fas fa-exclamation-triangle"></i> Anomalies
+		</a>
+		<a href="/audit" class="dd-item">
+			<i class="fas fa-history"></i> Audit Trail
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dd-item">
+			<i class="fas fa-user-shield"></i>
+			Admin Dashboard
+		</a>
+		<a href="/profile" class="dd-item">
+			<i class="fas fa-user"></i>
+			Profile
+		</a>
+		<a href="/change-password" class="dd-item">
+			<i class="fas fa-key"></i>
+			Change Password
+		</a>
+		<a href="/about" class="dd-item">
+			<i class="fas fa-info-circle"></i>
+			About Us
+		</a>
+		<a href="/settings" class="dd-item"><i class="fas fa-cog"></i> Settings</a>
+
+		<hr class="dd-divider" />
+
+		<form th:action="@{/logout}" method="post" class="dd-logout-form">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<button type="submit" class="dd-logout">
+				<i class="fas fa-sign-out-alt"></i>
+				Logout
+			</button>
+		</form>
+	</div>
+
+	<div class="main-content">
+		<div class="page-title">📤 Upload Document</div>
+		<div class="page-sub">
+			Upload your document for AI-powered anomaly detection
+		</div>
+
+		<div class="upload-card">
+
+			<!-- Success/Error Alerts -->
+			<div th:if="${success}" class="alert-success-custom">
+				<i class="fas fa-check-circle"></i>
+				<span th:text="${success}"></span>
+			</div>
+			<div th:if="${error}" class="alert-error-custom">
+				<i class="fas fa-times-circle"></i>
+				<span th:text="${error}"></span>
+			</div>
+
+			<form th:action="@{/upload}" method="post" enctype="multipart/form-data" id="uploadForm">
+
+				<!-- Document Type Selection -->
+				<div class="form-label-custom">
+					Select Document Type
+				</div>
+				<div class="doc-type-grid">
+					<label class="doc-type-option" id="type-land" onclick="selectType('LAND_RECORD','type-land')">
+						<input type="radio" name="documentType" value="LAND_RECORD" checked />
+						<div class="doc-type-icon">🏠</div>
+						<div class="doc-type-label">
+							Land Record
+						</div>
+					</label>
+					<label class="doc-type-option" id="type-legal" onclick="selectType('LEGAL_DOCUMENT','type-legal')">
+						<input type="radio" name="documentType" value="LEGAL_DOCUMENT" />
+						<div class="doc-type-icon">⚖️</div>
+						<div class="doc-type-label">
+							Legal Document
+						</div>
+					</label>
+					<label class="doc-type-option" id="type-financial"
+						onclick="selectType('FINANCIAL_STATEMENT','type-financial')">
+						<input type="radio" name="documentType" value="FINANCIAL_STATEMENT" />
+						<div class="doc-type-icon">💰</div>
+						<div class="doc-type-label">
+							Financial Statement
+						</div>
+					</label>
+				</div>
+
+				<!-- File Drop Zone -->
+				<div class="form-label-custom">
+					Select File
+				</div>
+				<div class="drop-zone" id="dropZone" ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+					ondrop="dropFile(event)">
+					<input type="file" name="file" id="file" onchange="
+					           detectFileType();
+					           fileSelected(this);
+					       ">
+					<div class="drop-icon">
+						<i class="fas fa-cloud-upload-alt"></i>
+					</div>
+					<div class="drop-text">
+						<span>Click to browse</span> or
+						drag & drop your file here<br />
+						<small style="font-size:0.78rem;">
+							Supports: PDF, TXT, DOC, DOCX, PNG, JPG
+						</small>
+					</div>
+				</div>
+
+				<!-- Selected File Info -->
+				<div class="file-selected" id="fileSelected">
+					<i class="fas fa-file-alt" style="color:#00d4ff; font-size:1.2rem;">
+					</i>
+					<div>
+						<div class="file-selected-name" id="selectedName"></div>
+						<div class="file-selected-size" id="selectedSize"></div>
+					</div>
+					<i class="fas fa-check-circle" style="color:#00ff88; 
+                          margin-left:auto;">
+					</i>
+				</div>
+
+				<!-- Progress Bar -->
+				<div class="progress-wrap" id="progressWrap">
+					<div class="progress-label">
+						<span>Uploading & Scanning...</span>
+						<span id="progressPct">0%</span>
+					</div>
+					<div class="progress-bar-custom">
+						<div class="progress-fill" id="progressFill"></div>
+					</div>
+				</div>
+
+
+				<div id="scanMode" style="
+				     color:#00d4ff;
+				     font-weight:600;
+				     margin-top:10px;">
+				</div>
+				<!-- Scan Button -->
+				<button type="submit" class="btn-scan" onclick="startProgress()">
+					<i class="fas fa-search"></i>
+					UPLOAD & SCAN DOCUMENT
+				</button>
+			</form>
+		</div>
+
+		<!-- Info Cards -->
+		<div class="info-grid">
+			<div class="info-card">
+				<div class="info-card-icon">🔍</div>
+				<div class="info-card-title">
+					Template Check
+				</div>
+				<div class="info-card-text">
+					Compares with valid document templates
+				</div>
+			</div>
+			<div class="info-card">
+				<div class="info-card-icon">🤖</div>
+				<div class="info-card-title">
+					ML Pattern Scan
+				</div>
+				<div class="info-card-text">
+					Weka ML detects suspicious patterns
+				</div>
+			</div>
+			<div class="info-card">
+				<div class="info-card-icon">🚨</div>
+				<div class="info-card-title">
+					Instant Results
+				</div>
+				<div class="info-card-text">
+					Get SAFE or UNSAFE verdict instantly
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		// Toggle dropdown
+		function toggleDropdown() {
+			document.getElementById('userDropdown')
+				.classList.toggle('open');
+		}
+		document.addEventListener('click', function (e) {
+			const dropdown = document
+				.getElementById('userDropdown');
+			const userIcon = document
+				.querySelector('.user-icon');
+			if (!userIcon.contains(e.target)) {
+				dropdown.classList.remove('open');
+			}
+		});
+
+		// Select document type
+		function selectType(type, id) {
+			document.querySelectorAll('.doc-type-option')
+				.forEach(el => el.classList.remove('selected'));
+			document.getElementById(id)
+				.classList.add('selected');
+		}
+		// Set default selected
+		document.getElementById('type-land')
+			.classList.add('selected');
+
+		// File selected
+		function fileSelected(input) {
+			if (input.files[0]) {
+				const file = input.files[0];
+				const size = (file.size / 1024).toFixed(1);
+				document.getElementById('selectedName')
+					.textContent = file.name;
+				document.getElementById('selectedSize')
+					.textContent = size + ' KB';
+				document.getElementById('fileSelected')
+					.classList.add('show');
+			}
+		}
+
+		// Drag and drop
+		function dragOver(e) {
+			e.preventDefault();
+			document.getElementById('dropZone')
+				.classList.add('dragover');
+		}
+		function dragLeave(e) {
+			document.getElementById('dropZone')
+				.classList.remove('dragover');
+		}
+		function dropFile(e) {
+			e.preventDefault();
+			document.getElementById('dropZone')
+				.classList.remove('dragover');
+			const file = e.dataTransfer.files[0];
+			if (file) {
+				document.getElementById('file')
+					.files = e.dataTransfer.files;
+				fileSelected(
+					document.getElementById(
+						'file'));
+			}
+		}
+
+		// Progress animation
+		function startProgress() {
+			document.getElementById('progressWrap')
+				.classList.add('show');
+			let pct = 0;
+			const interval = setInterval(() => {
+				pct += Math.random() * 15;
+				if (pct > 90) pct = 90;
+				document.getElementById('progressFill')
+					.style.width = pct + '%';
+				document.getElementById('progressPct')
+					.textContent = Math.round(pct) + '%';
+			}, 200);
+		}
+
+		function detectFileType() {
+
+			const fileInput =
+				document.getElementById("file");
+
+			const file =
+				fileInput.files[0];
+
+			if (!file) return;
+
+			const fileName =
+				file.name.toLowerCase();
+
+			const mode =
+				document.getElementById(
+					"scanMode");
+
+			if (
+				fileName.endsWith(".png") ||
+				fileName.endsWith(".jpg") ||
+				fileName.endsWith(".jpeg")
+			) {
+				mode.innerHTML =
+					"🖼️ Image Analysis Mode";
+			}
+			else {
+				mode.innerHTML =
+					"📄 Document Analysis Mode";
+			}
+		}
+
+		setTimeout(() => {
+
+			const success =
+				document.querySelector(
+					".alert-success-custom");
+
+			if (success) {
+
+				success.style.transition =
+					"opacity 1s";
+
+				success.style.opacity = "0";
+
+				setTimeout(() => {
+
+					success.remove();
+
+				}, 1000);
+			}
+
+		}, 3000);
+
+
+
+	</script>
+</body>
+
+</html>
