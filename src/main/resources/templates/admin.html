@@ -792,87 +792,94 @@
 
 		<!-- RBAC Permissions Reference -->
 		<div class="rbac-card">
-			<div class="rbac-title">
-				🔐 Role Permissions Reference
-			</div>
+		    <div class="rbac-title">
+		        🔐 Role Permissions Reference
+		    </div>
+
+		    <div class="rbac-row">
+		        <div class="rbac-role">
+		            <span class="role-badge role-ADMIN">
+		                ⚡ ADMIN
+		            </span>
+		        </div>
+		        <div class="rbac-perms">
+		            <span class="perm-tag">Manage Users</span>
+		            <span class="perm-tag">Assign Roles</span>
+		            <span class="perm-tag">Delete Users</span>
+		            <span class="perm-tag">System Statistics</span>
+		            <span class="perm-tag">Export All Audit Logs</span>
+		            <span class="perm-tag">Admin Dashboard</span>
+		        </div>
+		    </div>
+
+		    <div class="rbac-row">
+		        <div class="rbac-role">
+		            <span class="role-badge role-MANAGER">
+		                📊 MANAGER
+		            </span>
+		        </div>
+		        <div class="rbac-perms">
+		            <span class="perm-tag">Upload Docs</span>
+		            <span class="perm-tag">Download Reports</span>
+		            <span class="perm-tag">View Audit Trail</span>
+		            <span class="perm-tag">Export Audit Logs</span>
+		            <span class="perm-tag">Review Activities</span>
+		        </div>
+		    </div>
+
+		    <div class="rbac-row">
+		        <div class="rbac-role">
+		            <span class="role-badge role-OFFICER">
+		                🏦 OFFICER
+		            </span>
+		        </div>
+		        <div class="rbac-perms">
+		            <span class="perm-tag">Upload Docs</span>
+		            <span class="perm-tag">Scan Documents</span>
+		            <span class="perm-tag">View Own Docs</span>
+		            <span class="perm-tag">Download Reports</span>
+		        </div>
+		    </div>
+
+		    <div class="rbac-row">
+		        <div class="rbac-role">
+		            <span class="role-badge role-AUDITOR">
+		                🔍 AUDITOR
+		            </span>
+		        </div>
+		        <div class="rbac-perms">
+		            <span class="perm-tag">View Audit Trail</span>
+		            <span class="perm-tag">Export Audit Logs</span>
+		            <span class="perm-tag">Review Security Events</span>
+		            <span class="perm-tag">Audit Verification</span>
+		        </div>
+		    </div>
+
+		    <div class="rbac-row">
+		        <div class="rbac-role">
+		            <span class="role-badge role-ANALYST">
+		                📈 ANALYST
+		            </span>
+		        </div>
+		        <div class="rbac-perms">
+		            <span class="perm-tag">Upload Docs</span>
+		            <span class="perm-tag">View Own Docs</span>
+		            <span class="perm-tag">Analyze Reports</span>
+		            <span class="perm-tag">Download Reports</span>
+		        </div>
+		    </div>
+
 			<div class="rbac-row">
-				<div class="rbac-role">
-					<span class="role-badge role-ADMIN">
-						⚡ ADMIN
-					</span>
-				</div>
-				<div class="rbac-perms">
-					<span class="perm-tag">All Features</span>
-					<span class="perm-tag">Manage Users</span>
-					<span class="perm-tag">Assign Roles</span>
-					<span class="perm-tag">Delete Users</span>
-					<span class="perm-tag">All Reports</span>
-				</div>
-			</div>
-			<div class="rbac-row">
-				<div class="rbac-role">
-					<span class="role-badge role-MANAGER">
-						📊 MANAGER
-					</span>
-				</div>
-				<div class="rbac-perms">
-					<span class="perm-tag">Upload Docs</span>
-					<span class="perm-tag">View All Docs</span>
-					<span class="perm-tag">Download Reports</span>
-					<span class="perm-tag">View Audit</span>
-					<span class="perm-tag">View Analytics</span>
-				</div>
-			</div>
-			<div class="rbac-row">
-				<div class="rbac-role">
-					<span class="role-badge role-OFFICER">
-						🏦 OFFICER
-					</span>
-				</div>
-				<div class="rbac-perms">
-					<span class="perm-tag">Upload Docs</span>
-					<span class="perm-tag">Scan Documents</span>
-					<span class="perm-tag">Download Reports</span>
-					<span class="perm-tag">View Own Docs</span>
-				</div>
-			</div>
-			<div class="rbac-row">
-				<div class="rbac-role">
-					<span class="role-badge role-AUDITOR">
-						🔍 AUDITOR
-					</span>
-				</div>
-				<div class="rbac-perms">
-					<span class="perm-tag">View All Anomalies</span>
-					<span class="perm-tag">View Audit Trail</span>
-					<span class="perm-tag">Export Logs</span>
-					<span class="perm-tag">Read Only</span>
-				</div>
-			</div>
-			<div class="rbac-row">
-				<div class="rbac-role">
-					<span class="role-badge role-ANALYST">
-						📈 ANALYST
-					</span>
-				</div>
-				<div class="rbac-perms">
-					<span class="perm-tag">View Analytics</span>
-					<span class="perm-tag">View Anomalies</span>
-					<span class="perm-tag">Export CSV</span>
-					<span class="perm-tag">View Reports</span>
-				</div>
-			</div>
-			<div class="rbac-row">
-				<div class="rbac-role">
-					<span class="role-badge role-USER">
-						👤 USER
-					</span>
-				</div>
-				<div class="rbac-perms">
-					<span class="perm-tag">Upload Own Docs</span>
-					<span class="perm-tag">View Own Docs</span>
-					<span class="perm-tag">Basic Scan</span>
-				</div>
+			    <div class="rbac-role">
+			        <span class="role-badge role-USER">
+			            👤 USER
+			        </span>
+			    </div>
+			    <div class="rbac-perms">
+			        <span class="perm-tag">Upload Documents</span>
+			        <span class="perm-tag">View Own Documents</span>
+			        <span class="perm-tag">Document Scanning</span>
+			    </div>
 			</div>
 		</div>
 

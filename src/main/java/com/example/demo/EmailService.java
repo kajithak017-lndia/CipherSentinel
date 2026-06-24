@@ -15,23 +15,29 @@ public class EmailService {
             String toEmail,
             String documentName) {
 
-        SimpleMailMessage message =
-            new SimpleMailMessage();
+        try {
 
-        message.setTo(toEmail);
+            SimpleMailMessage message =
+                new SimpleMailMessage();
 
-        message.setSubject(
-            "🚨 CipherSentinel Alert");
+            message.setTo(toEmail);
 
-        message.setText(
-            "Hello,\n\n" +
-            "Your document '" +
-            documentName +
-            "' has been marked as UNSAFE.\n\n" +
-            "Please review the detected issues.\n\n" +
-            "CipherSentinel");
+            message.setSubject(
+                "CipherSentinel Alert");
 
-        mailSender.send(message);
+            message.setText(
+                "Document " + documentName +
+                " has been marked UNSAFE.");
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+
+            System.out.println(
+                "EMAIL FAILED: " +
+                e.getMessage());
+
+        }
     }
     public void sendTamperingAlert(
             String toEmail,

@@ -27,7 +27,7 @@ public class SecurityConfig {
 				.requestMatchers("/login", "/register", "/forgot-password", "/css/**", "/js/**", "/profile-images/**")
 				.permitAll().requestMatchers("/admin/**").hasAuthority("ADMIN")
 				.requestMatchers("/audit", "/export-audit").hasAnyAuthority("ADMIN", "MANAGER", "AUDITOR")
-				.requestMatchers("/download-report/**").hasAnyAuthority("ADMIN", "MANAGER", "OFFICER").anyRequest()
+				.requestMatchers("/download-report/**").hasAnyAuthority("ADMIN", "MANAGER", "AUDITOR" , "OFFICER" , "ANALYST").anyRequest()
 				.authenticated())
 				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
 				.exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))

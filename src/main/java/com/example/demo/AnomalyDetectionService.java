@@ -8,6 +8,8 @@ import java.nio.file.*;
 import java.util.*;
 import org.apache.tika.Tika;
 import java.io.File;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 
 @Service
 public class AnomalyDetectionService {
@@ -58,18 +60,47 @@ public class AnomalyDetectionService {
 				System.out.println("OCR CONTENT END");
 			} else {
 
-				Tika tika = new Tika();
+				if (fileType.equals("text/plain")) {
 
-				content = tika.parseToString(new ByteArrayInputStream(fileContent)).toLowerCase();
-				System.out.println("PDF CONTENT START");
-				System.out.println(content);
-				System.out.println("PDF CONTENT END");
+					content = new String(fileContent);
+
+					content = content.toLowerCase();
+
+					System.out.println("TXT CONTENT START");
+					System.out.println(content);
+					System.out.println("TXT CONTENT END");
+
+				} else {
+
+					Tika tika = new Tika();
+
+					content = tika.parseToString(new ByteArrayInputStream(fileContent)).toLowerCase();
+
+					System.out.println("PDF CONTENT START");
+					System.out.println(content);
+					System.out.println("PDF CONTENT END");
+				}
+				if (fileType.contains("wordprocessingml")) {
+
+					XWPFDocument wordDoc = new XWPFDocument(new ByteArrayInputStream(fileContent));
+
+					XWPFWordExtractor extractor = new XWPFWordExtractor(wordDoc);
+
+					content = extractor.getText().toLowerCase();
+
+					System.out.println("DOCX CONTENT START");
+					System.out.println(content);
+					System.out.println("DOCX CONTENT END");
+
+					extractor.close();
+					wordDoc.close();
+				}
+
 				if (content == null || content.trim().isEmpty()) {
 
-					throw new RuntimeException("Uploaded file contains no readable content.");
+					content = "empty_document";
 				}
 			}
-
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -260,9 +291,8 @@ public class AnomalyDetectionService {
 		List<Anomaly> anomalies = new ArrayList<>();
 
 		// Required fields from template
-		String[] requiredFields = { "financial statement", "assets", "liabilities", "owner's equity", "total assets",
-				"total liabilities", "property valorization", "income from property", "declaration",
-				"signature of owner" };
+		String[] requiredFields = { "financial statement", "assets", "liabilities", "owner", "total assets",
+				"total liabilities", "property valorization", "income from property", "declaration" };
 		for (String field : requiredFields) {
 
 			if (!content.contains(field.toLowerCase())) {
@@ -277,7 +307,7 @@ public class AnomalyDetectionService {
 
 		doc.setSimilarityScore(matchScore);
 		System.out.println("FINANCIAL SIMILARITY = " + matchScore + "%");
-		if (matchScore < 40) {
+		if (matchScore < 25) {
 			anomalies.add(createAnomaly(doc.getId(), "LOW_TEMPLATE_MATCH", "HIGH", "Document structure is " + matchScore
 					+ "% similar to valid financial statement. " + "Possible fraud!"));
 		}
