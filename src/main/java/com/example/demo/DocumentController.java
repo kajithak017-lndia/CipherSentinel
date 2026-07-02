@@ -53,23 +53,20 @@ public class DocumentController {
 	
 	@Autowired
 	private EmailService emailService;
-
-	@GetMapping("/upload")
-	public String uploadPage() {
-		return "upload";
-	}
-
+	@Autowired
+	private LoanApplicationService loanApplicationService;
 	@PostMapping("/upload")
 	public String uploadDocument(
-	        @RequestParam("file")
-	        MultipartFile file,
 
-	        @RequestParam("documentType")
-	        String documentType,
+	        @RequestParam("file") MultipartFile file,
+
+	        @RequestParam("applicationId") Integer applicationId,
+
+	        @RequestParam("requiredDocument") String requiredDocument,
 
 	        Authentication auth,
-	        Model model) {
 
+	        Model model) {
 	    if(file == null ||
 	       file.isEmpty()) {
 
@@ -87,9 +84,10 @@ public class DocumentController {
 	                auth.getName());
 
 	        documentService.saveDocument(
-	            file,
-	            user.getId(),
-	            documentType);
+	                file,
+	                user.getId(),
+	               
+	                requiredDocument);
 
 	        model.addAttribute(
 	            "success",

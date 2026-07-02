@@ -16,9 +16,7 @@ public class Document {
 	private String fileType;
 
 	private String documentType;
-
 	private int uploadedBy;
-
 	private String status;
 
 	private String documentHash;
@@ -27,17 +25,35 @@ public class Document {
 	private Integer trustScore;
 
 	private Integer similarityScore;
+	@ManyToOne
+	@JoinColumn(name = "application_id")
+	private LoanApplication loanApplication;
+
+	private String requiredDocument;
+	@Column(nullable = false)
+	private Boolean mandatory = true;
+
+	@Column(nullable = false)
+	private Boolean verified = false;
+	private String verificationStatus;
 
 	@PrePersist
 	public void prePersist() {
 
-	    if(uploadTime == null) {
+	    if (uploadTime == null)
 	        uploadTime = LocalDateTime.now();
-	    }
 
-	    if(status == null) {
+	    if (status == null)
 	        status = "PENDING";
-	    }
+
+	    if (mandatory == null)
+	        mandatory = true;
+
+	    if (verified == null)
+	        verified = false;
+
+	    if (verificationStatus == null)
+	        verificationStatus = "Pending";
 	}
 
 	public int getId() {
@@ -73,13 +89,12 @@ public class Document {
 	}
 
 	public int getUploadedBy() {
-		return uploadedBy;
+	    return uploadedBy;
 	}
 
 	public void setUploadedBy(int uploadedBy) {
-		this.uploadedBy = uploadedBy;
+	    this.uploadedBy = uploadedBy;
 	}
-
 	public String getStatus() {
 		return status;
 	}
@@ -118,5 +133,44 @@ public class Document {
 
 	public void setSimilarityScore(Integer similarityScore) {
 		this.similarityScore = similarityScore;
+	}
+	public LoanApplication getLoanApplication() {
+	    return loanApplication;
+	}
+
+	public void setLoanApplication(LoanApplication loanApplication) {
+	    this.loanApplication = loanApplication;
+	}
+
+	public String getRequiredDocument() {
+	    return requiredDocument;
+	}
+
+	public void setRequiredDocument(String requiredDocument) {
+	    this.requiredDocument = requiredDocument;
+	}
+
+	public String getVerificationStatus() {
+		return verificationStatus;
+	}
+
+	public void setVerificationStatus(String verificationStatus) {
+		this.verificationStatus = verificationStatus;
+	}
+
+	public Boolean getVerified() {
+		return verified;
+	}
+
+	public void setVerified(Boolean verified) {
+		this.verified = verified;
+	}
+
+	public Boolean getMandatory() {
+		return mandatory;
+	}
+
+	public void setMandatory(Boolean mandatory) {
+		this.mandatory = mandatory;
 	}
 }
