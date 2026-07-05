@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -53,67 +52,208 @@ public class DocumentController {
 	
 	@Autowired
 	private EmailService emailService;
+	
 	@Autowired
-	private LoanApplicationService loanApplicationService;
+	private LoanApplicationRepository loanApplicationRepository;
+	
+	@GetMapping("/upload")
+	public String uploadPage(@RequestParam(required = false) Integer applicationId, Model model) {
+	    populateUploadModel(applicationId, model);
+	    return "upload";
+	}
+
 	@PostMapping("/upload")
 	public String uploadDocument(
-
 	        @RequestParam("file") MultipartFile file,
-
-	        @RequestParam("applicationId") Integer applicationId,
-
-	        @RequestParam("requiredDocument") String requiredDocument,
-
+	        @RequestParam("documentType") String documentType,
+	        @RequestParam(value = "applicationId", required = false) Integer applicationId,
 	        Authentication auth,
+	        Model model,HttpServletRequest request) {
 
-	        Model model) {
-	    if(file == null ||
-	       file.isEmpty()) {
-
-	        model.addAttribute(
-	            "error",
-	            "Please select a document to upload.");
-
+	    if (file == null || file.isEmpty()) {
+	        model.addAttribute("error", "Please select a document.");
+	        populateUploadModel(applicationId, model);
 	        return "upload";
 	    }
 
 	    try {
-
-	        User user =
-	            userRepository.findByUsername(
-	                auth.getName());
-
-	        documentService.saveDocument(
-	                file,
-	                user.getId(),
-	               
-	                requiredDocument);
-
-	        model.addAttribute(
-	            "success",
-	            "Document uploaded and scanned successfully!");
-
+	        User user = userRepository.findByUsername(auth.getName());
+	        documentService.saveDocument(file, user.getId(), documentType, applicationId,
+	                auth.getName(), request);   // <-- was missing these two args
+	        model.addAttribute("success", "Document uploaded successfully.");
 	    } catch (Exception e) {
-
-	        model.addAttribute(
-	            "error",
-	            "Upload failed: "
-	            + e.getMessage());
+	        model.addAttribute("error", "Upload failed : " + e.getMessage());
 	    }
 
+	    populateUploadModel(applicationId, model);
 	    return "upload";
+	}
+
+	/** Shared model setup so GET and POST always render identical, complete state. */
+	private void populateUploadModel(Integer applicationId, Model model) {
+
+	    if (applicationId == null) {
+	        return;
+	    }
+
+	    LoanApplication app = loanApplicationRepository.findById(applicationId).orElse(null);
+	    model.addAttribute("loanApplication", app);
+	    if (app != null && app.getService() != null) {
+
+	        List<String> required = app.getService().getRequiredDocumentsList();
+	        List<Document> uploaded = documentRepository.findByApplicationId(applicationId);
+
+	        List<String> uploadedTypes = uploaded.stream()
+	                .map(Document::getDocumentType)
+	                .collect(java.util.stream.Collectors.toList());
+
+	        List<String> missing = required.stream()
+	                .filter(r -> !uploadedTypes.contains(r))
+	                .collect(java.util.stream.Collectors.toList());
+
+	        model.addAttribute("requiredDocuments", required);
+	        model.addAttribute("uploadedDocuments", uploaded);
+	        model.addAttribute("missingDocuments", missing);
+	    }
+	}
+
+	/**
+	 * Recalculates and saves the stored progress fields (uploadedDocuments, totalDocuments,
+	 * completedPercentage, status) on a LoanApplication based on what is ACTUALLY in the
+	 * database right now. Must be called any time a document tied to an application is
+	 * added or removed outside the normal saveDocument() flow — e.g. after a delete —
+	 * otherwise the upload page's progress bar/label goes stale (shows old counts forever).
+	 */
+	private void recalculateApplicationProgress(Integer applicationId) {
+
+	    if (applicationId == null) {
+	        return;
+	    }
+
+	    LoanApplication app = loanApplicationRepository.findById(applicationId).orElse(null);
+	    if (app == null || app.getService() == null) {
+	        return;
+	    }
+
+	    List<String> required = app.getService().getRequiredDocumentsList();
+	    List<Document> remaining = documentRepository.findByApplicationId(applicationId);
+
+	    List<String> uploadedTypes = remaining.stream()
+	            .map(Document::getDocumentType)
+	            .distinct()
+	            .collect(java.util.stream.Collectors.toList());
+
+	    long uploadedCount = required.stream()
+	            .filter(uploadedTypes::contains)
+	            .count();
+
+	    int totalRequired = required.size();
+	    int pct = totalRequired > 0 ? (int) (uploadedCount * 100 / totalRequired) : 0;
+
+	    app.setTotalDocuments(totalRequired);
+	    app.setUploadedDocuments((int) uploadedCount);
+	    app.setCompletedPercentage(pct);
+
+	    // Only touch status if the application hasn't already moved past the applicant's
+	    // own editing stage — never silently revert a status once it's under review or decided.
+	    String currentStatus = app.getStatus();
+	    boolean isEditableStage = currentStatus == null
+	            || "SUBMITTED".equals(currentStatus)
+	            || "Pending Verification".equals(currentStatus)
+	            || "DOCUMENTS_COMPLETE".equals(currentStatus);
+
+	    if (isEditableStage) {
+	        if (uploadedCount == 0) {
+	            app.setStatus("SUBMITTED");
+	        } else if (uploadedCount < totalRequired) {
+	            app.setStatus("Pending Verification");
+	        } else {
+	            app.setStatus("DOCUMENTS_COMPLETE");
+	        }
+	    }
+
+	    loanApplicationRepository.save(app);
 	}
 
 	@GetMapping("/documents")
 	public String viewDocuments(Authentication auth, Model model) {
-
-		User user = userRepository.findByUsername(auth.getName());
-
-		model.addAttribute("documents", documentService.getDocumentsByUser(user.getId()));
-
-		return "documents";
+	    User user = userRepository.findByUsername(auth.getName());
+	    model.addAttribute("applicationsWithDocuments", documentService.getApplicationsWithDocumentsForUser(user.getId()));
+	    model.addAttribute("uncategorizedDocuments", documentService.getUncategorizedDocuments(user.getId()));
+	    return "documents";
 	}
+	@PostMapping("/submit-application/{id}")
+	public String submitApplication(@PathVariable(required = false) Integer id, Authentication auth) {
 
+	    if (id == null) {
+	        return "redirect:/documents";
+	    }
+
+	    LoanApplication app = loanApplicationRepository.findById(id).orElse(null);
+	    if (app == null || app.getService() == null) {
+	        return "redirect:/documents";
+	    }
+
+	    int required = app.getService().getRequiredDocumentsList().size();
+	    int uploaded = app.getUploadedDocuments() != null ? app.getUploadedDocuments() : 0;
+
+	    if (uploaded >= required) {
+	        app.setStatus("UNDER_REVIEW");
+	        loanApplicationRepository.save(app);
+	    }
+
+	    return "redirect:/documents";
+	}
+	@PostMapping("/cancel-application/{id}")
+	public String cancelApplication(@PathVariable(required = false) Integer id, Authentication auth) {
+
+	    if (id == null) {
+	        return "redirect:/documents";
+	    }
+
+	    LoanApplication app = loanApplicationRepository.findById(id).orElse(null);
+	    if (app == null) {
+	        return "redirect:/documents";
+	    }
+
+	    User user = userRepository.findByUsername(auth.getName());
+
+	    // Only the owner can cancel their own application
+	    if (app.getCustomer() == null || app.getCustomer().getId() != user.getId()) {
+	        return "redirect:/documents";
+	    }
+
+	    // Safety guard: only cancellable while still editable, not once it's under review or decided
+	    if ("UNDER_REVIEW".equals(app.getStatus())
+	            || "MANAGER_REVIEW".equals(app.getStatus())
+	            || "APPROVED".equals(app.getStatus())
+	            || "REJECTED_BY_OFFICER".equals(app.getStatus())
+	            || "REJECTED_BY_MANAGER".equals(app.getStatus())) {
+	        return "redirect:/documents";
+	    }
+
+	    List<Document> docs = documentRepository.findByApplicationId(id);
+
+	    for (Document doc : docs) {
+	        List<Anomaly> anomalies = anomalyRepository.findByDocumentId(doc.getId());
+	        anomalyRepository.deleteAll(anomalies);
+
+	        List<AuditLog> logs = auditLogRepository.findByDocumentId(doc.getId());
+	        auditLogRepository.deleteAll(logs);
+
+	        try {
+	            Path filePath = Paths.get("uploads/" + doc.getFileName());
+	            Files.deleteIfExists(filePath);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+
+	    documentRepository.deleteAll(docs);
+	    loanApplicationRepository.delete(app);
+
+	    return "redirect:/documents";
+	}
 	@GetMapping("/anomalies")
 	public String viewAnomalies(Authentication auth, Model model) {
 
@@ -379,6 +519,10 @@ public class DocumentController {
 					return "redirect:/documents";
 				}
 
+				// Capture the parent application's id BEFORE deleting the document,
+				// since we need it afterward to recalculate progress.
+				Integer applicationId = doc.getApplication() != null ? doc.getApplication().getId() : null;
+
 				List<Anomaly> anomalies = anomalyRepository.findByDocumentId(id);
 
 				anomalyRepository.deleteAll(anomalies);
@@ -388,6 +532,12 @@ public class DocumentController {
 				Files.deleteIfExists(filePath);
 
 				documentRepository.deleteById(id);
+
+				// ✅ FIX: keep the parent application's stored progress in sync with reality.
+				// Without this, the upload page's progress bar/label and status badge stay
+				// frozen at whatever they were before the delete (e.g. still shows
+				// "5 of 5 uploaded — DOCUMENTS_COMPLETE" after you've deleted one).
+				recalculateApplicationProgress(applicationId);
 
 				saveAuditLog(user, "DOCUMENT_DELETED", doc, "Document deleted successfully");
 			}
@@ -535,6 +685,30 @@ public class DocumentController {
 	        content.getBytes());
 
 	    return "redirect:/view/" + id;
+	}
+	@GetMapping("/download/{id}")
+	public ResponseEntity<byte[]> downloadDocument(@PathVariable int id) {
+
+	    try {
+	        Document doc = documentRepository.findById(id).orElse(null);
+	        if (doc == null) {
+	            return ResponseEntity.notFound().build();
+	        }
+
+	        Path filePath = Paths.get("uploads/" + doc.getFileName());
+	        byte[] fileBytes = Files.readAllBytes(filePath);
+
+	        String contentType = doc.getFileType() != null ? doc.getFileType() : "application/octet-stream";
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.parseMediaType(contentType));
+	        headers.setContentDisposition(ContentDisposition.builder("attachment").filename(doc.getFileName()).build());
+
+	        return ResponseEntity.ok().headers(headers).body(fileBytes);
+
+	    } catch (Exception e) {
+	        return ResponseEntity.internalServerError().build();
+	    }
 	}
 	@GetMapping("/export-audit")
 	public void exportAuditCsv(Authentication auth, HttpServletResponse response) throws IOException {

@@ -44,8 +44,18 @@ public class PdfReportController {
                 .notFound().build();
         }
 
+        // The user who actually uploaded this document (may differ from the
+        // person downloading the report, e.g. a manager reviewing someone else's file)
+        User uploader = userRepository
+            .findById(pdfDoc.getUploadedBy())
+            .orElse(user);
+
         List<Anomaly> anomalies = anomalyRepository
             .findByDocumentId(docId);
+
+        // Banking service / application this document belongs to (may be null for
+        // legacy/uncategorized documents uploaded before applications existed)
+        LoanApplication application = pdfDoc.getApplication();
 
        
 
@@ -145,6 +155,43 @@ public class PdfReportController {
 
         pdf.add(Chunk.NEWLINE);
 
+        // ===== APPLICATION DETAILS (only shown if this document belongs to a banking application) =====
+        if (application != null) {
+
+            Paragraph appHead = new Paragraph(
+                "BANKING APPLICATION", headFont);
+            appHead.setSpacingAfter(8);
+            pdf.add(appHead);
+
+            PdfPTable appTable = new PdfPTable(2);
+            appTable.setWidthPercentage(100);
+            appTable.setWidths(new float[]{1f, 2f});
+            appTable.setSpacingAfter(16);
+
+            addTableRow(appTable,
+                "Banking Service",
+                application.getService() != null
+                    ? application.getService().getServiceName()
+                    : "—",
+                boldFont, normalFont);
+
+            addTableRow(appTable,
+                "Application Number",
+                application.getApplicationNumber() != null
+                    ? application.getApplicationNumber()
+                    : "—",
+                boldFont, normalFont);
+
+            addTableRow(appTable,
+                "Application Status",
+                application.getStatus() != null
+                    ? application.getStatus()
+                    : "—",
+                boldFont, normalFont);
+
+            pdf.add(appTable);
+        }
+
         // ===== DOCUMENT DETAILS =====
         Paragraph docHead = new Paragraph(
             "DOCUMENT DETAILS", headFont);
@@ -185,7 +232,9 @@ public class PdfReportController {
 
         addTableRow(docTable,
             "Uploaded By",
-            user.getUsername(),
+            uploader != null
+                ? uploader.getUsername()
+                : "—",
             boldFont, normalFont);
 
         pdf.add(docTable);

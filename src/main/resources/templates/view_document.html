@@ -513,9 +513,14 @@
 		<a href="/audit" class="dd-item">
 			<i class="fas fa-history"></i> Audit Trail
 		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''OFFICER'')')}" href="/officer" class="dd-item">
+		    <i class="fas fa-user-tie"></i> Officer Dashboard
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''MANAGER'')')}" href="/manager" class="dd-item">
+		    <i class="fas fa-briefcase"></i> Manager Dashboard
+		</a>
 		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dd-item">
-			<i class="fas fa-user-shield"></i>
-			Admin Dashboard
+		    <i class="fas fa-user-shield"></i> Admin Dashboard
 		</a>
 		<a href="/profile" class="dd-item">
 			<i class="fas fa-user"></i>

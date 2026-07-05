@@ -1,0 +1,17 @@
+*** SAMPLE / TEST DOCUMENT — TEXT PLACEHOLDER FOR AN IMAGE FILE ***
+Document Type: PHOTOGRAPH
+
+[This is a placeholder text file standing in for a passport-style
+photograph upload, for testing purposes only.]
+
+Expected real-world file: JPEG/PNG, passport-size photo
+(e.g. 3.5cm x 4.5cm, white background, recent, face clearly visible)
+
+Applicant Name: RAHUL TEST KUMAR
+Photo Reference ID: PHOTO-TEST-0001
+Date Taken (sample): 01/01/2026
+
+--- END OF SAMPLE DOCUMENT ---
+Note: since this document type is normally an image, you may want to
+test with an actual small JPEG/PNG instead of this text file if your
+upload validation checks file_type/content-type for PHOTOGRAPH.

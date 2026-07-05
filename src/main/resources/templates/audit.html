@@ -289,10 +289,16 @@
 			border: 1px solid rgba(255, 200, 0, 0.2);
 		}
 
+		.crit {
+			background: rgba(255, 0, 60, 0.15);
+			color: #ff003c;
+			border: 1px solid rgba(255, 0, 60, 0.35);
+		}
+
 		/* ===== INFO GRID ===== */
 		.info-grid {
 			display: grid;
-			grid-template-columns: repeat(4, 1fr);
+			grid-template-columns: repeat(5, 1fr);
 			gap: 14px;
 			margin-bottom: 12px;
 		}
@@ -328,6 +334,61 @@
 			background: rgba(0, 212, 255, 0.1);
 			color: #00d4ff;
 			border: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.role-officer {
+			display: inline-block;
+			background: rgba(0, 212, 255, 0.1);
+			color: #00d4ff;
+			border: 1px solid rgba(0, 212, 255, 0.2);
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.role-manager {
+			display: inline-block;
+			background: rgba(255, 200, 0, 0.1);
+			color: #ffc800;
+			border: 1px solid rgba(255, 200, 0, 0.2);
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.role-auditor {
+			display: inline-block;
+			background: rgba(123, 97, 255, 0.1);
+			color: #7b61ff;
+			border: 1px solid rgba(123, 97, 255, 0.2);
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.role-analyst {
+			display: inline-block;
+			background: rgba(0, 255, 136, 0.1);
+			color: #00ff88;
+			border: 1px solid rgba(0, 255, 136, 0.2);
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.role-deactivated {
+			display: inline-block;
+			background: rgba(128, 128, 128, 0.1);
+			color: #888;
+			border: 1px solid rgba(128, 128, 128, 0.2);
 			padding: 2px 8px;
 			border-radius: 4px;
 			font-size: 0.72rem;
@@ -483,7 +544,7 @@
 		        padding:15px;
 		    }
 
-		    /* Change 4 columns to 2 columns */
+		    /* Change 5 columns to 2 columns */
 		    .info-grid{
 		        grid-template-columns:1fr 1fr;
 		        gap:12px;
@@ -611,9 +672,14 @@
 			<i class="fas fa-history"></i>
 			Audit Trail
 		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''OFFICER'')')}" href="/officer" class="dropdown-item-custom">
+		    <i class="fas fa-user-tie"></i> Officer Dashboard
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''MANAGER'')')}" href="/manager" class="dropdown-item-custom">
+		    <i class="fas fa-briefcase"></i> Manager Dashboard
+		</a>
 		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dropdown-item-custom">
-			<i class="fas fa-user-shield"></i>
-			Admin Dashboard
+		    <i class="fas fa-user-shield"></i> Admin Dashboard
 		</a>
 		<a href="/profile" class="dropdown-item-custom">
 			<i class="fas fa-user"></i>
@@ -681,90 +747,23 @@
 			<div th:each="log : ${logs}" class="timeline-item">
 				<div class="audit-card">
 
-					<!-- Action Badge -->
-					<span th:if="${log.action == 'USER_LOGIN'}" class="action-badge" style="background:rgba(0,255,136,0.1);
-				             color:#00ff88;
-				             border:1px solid rgba(0,255,136,0.2);">
-						<i class="fas fa-sign-in-alt"></i>
-						USER LOGIN
+					<!-- Action Badge — colored by severity, scales to any action -->
+					<span class="action-badge"
+					      th:classappend="${
+					          log.severity == 'CRITICAL' ? 'crit' :
+					          (log.severity == 'HIGH' ? 'delete' :
+					          (log.severity == 'MEDIUM' ? 'other' : 'upload'))}"
+					      style="display:inline-flex; align-items:center; gap:6px;">
+						<i th:class="${
+						        log.severity == 'CRITICAL' ? 'fas fa-skull-crossbones' :
+						        (log.severity == 'HIGH' ? 'fas fa-exclamation-triangle' :
+						        (log.severity == 'MEDIUM' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'))}">
+						</i>
+						<span th:text="${log.action}"></span>
+						<span th:if="${log.module != null}" style="opacity:0.65; font-weight:400;"
+						      th:text="'· ' + ${log.module}"></span>
 					</span>
 
-					<span th:if="${log.action == 'USER_LOGOUT'}" class="action-badge" style="background:rgba(255,200,0,0.1);
-				             color:#ffc800;
-				             border:1px solid rgba(255,200,0,0.2);">
-						<i class="fas fa-sign-out-alt"></i>
-						USER LOGOUT
-					</span>
-
-					<span th:if="${log.action == 'LOGIN_FAILED'}" class="action-badge" style="background:rgba(255,76,106,0.1);
-				             color:#ff4c6a;
-				             border:1px solid rgba(255,76,106,0.2);">
-						<i class="fas fa-times-circle"></i>
-						LOGIN FAILED
-					</span>
-
-					<span th:if="${log.action == 'DOCUMENT_UPLOADED'}" class="action-badge upload">
-						<i class="fas fa-upload"></i>
-						DOCUMENT UPLOADED
-					</span>
-
-					<span th:if="${log.action == 'DOCUMENT_DELETED'}" class="action-badge delete">
-						<i class="fas fa-trash-alt"></i>
-						DOCUMENT DELETED
-					</span>
-
-					<span th:if="${log.action == 'DOCUMENT_RESCANNED'}" class="action-badge rescan">
-						<i class="fas fa-sync-alt"></i>
-						DOCUMENT RESCANNED
-					</span>
-
-					<span th:if="${log.action == 'DOCUMENT_VIEWED'}" class="action-badge" style="background:rgba(0,212,255,0.1);
-				             color:#00d4ff;
-				             border:1px solid rgba(0,212,255,0.2);">
-						<i class="fas fa-eye"></i>
-						DOCUMENT VIEWED
-					</span>
-
-					<span th:if="${log.action == 'ISSUES_VIEWED'}" class="action-badge" style="background:rgba(255,150,50,0.1);
-				             color:#ff9632;
-				             border:1px solid rgba(255,150,50,0.2);">
-						<i class="fas fa-exclamation-circle"></i>
-						ISSUES VIEWED
-					</span>
-
-					<span th:if="${log.action == 'PASSWORD_CHANGED'}" class="action-badge" style="background:rgba(123,97,255,0.1);
-				             color:#7b61ff;
-				             border:1px solid rgba(123,97,255,0.2);">
-						<i class="fas fa-lock"></i>
-						PASSWORD CHANGED
-					</span>
-
-					<span th:if="${log.action == 'ROLE_CHANGED'}" class="action-badge" style="background:rgba(255,200,0,0.1);
-				             color:#ffc800;
-				             border:1px solid rgba(255,200,0,0.2);">
-						<i class="fas fa-user-tag"></i>
-						ROLE CHANGED
-					</span>
-
-					<span th:if="${log.action == 'ACCOUNT_DEACTIVATED'}" class="action-badge" style="background:rgba(255,76,106,0.1);
-				             color:#ff4c6a;
-				             border:1px solid rgba(255,76,106,0.2);">
-						<i class="fas fa-user-slash"></i>
-						ACCOUNT DEACTIVATED
-					</span>
-
-					<span th:if="${log.action != 'USER_LOGIN' and
-				               log.action != 'USER_LOGOUT' and
-				               log.action != 'LOGIN_FAILED' and
-				               log.action != 'DOCUMENT_UPLOADED' and
-				               log.action != 'DOCUMENT_DELETED' and
-				               log.action != 'DOCUMENT_RESCANNED' and
-				               log.action != 'DOCUMENT_VIEWED' and
-				               log.action != 'ISSUES_VIEWED' and
-				               log.action != 'PASSWORD_CHANGED' and
-				               log.action != 'ROLE_CHANGED' and
-				               log.action != 'ACCOUNT_DEACTIVATED'}" class="action-badge other" th:text="${log.action}">
-					</span>
 					<!-- Info Grid -->
 					<div class="info-grid">
 
@@ -789,13 +788,8 @@
 								</i>Role
 							</div>
 							<div class="info-value">
-								<span th:if="${log.userRole
-                                    == 'ADMIN'}" class="role-admin">
-									ADMIN
-								</span>
-								<span th:if="${log.userRole
-                                    != 'ADMIN'}" class="role-user">
-									USER
+								<span th:class="'role-' + ${#strings.toLowerCase(log.userRole ?: 'user')}"
+								      th:text="${log.userRole ?: 'USER'}">
 								</span>
 							</div>
 						</div>
@@ -843,6 +837,18 @@
 								</span>
 							</div>
 						</div>
+
+						<!-- Application Number -->
+						<div>
+							<div class="info-label">
+								<i class="fas fa-hashtag" style="margin-right:4px;">
+								</i>Application
+							</div>
+							<div class="info-value" th:text="${log.applicationNumber != null
+									and !log.applicationNumber.isEmpty()
+									? log.applicationNumber : '—'}">
+							</div>
+						</div>
 					</div>
 
 					<!-- Details -->
@@ -858,7 +864,7 @@
 					<!-- Timestamp -->
 					<div class="time-row">
 						<i class="fas fa-clock"></i>
-						<span th:text="${log.timestamp}">
+						<span th:text="${#temporals.format(log.timestamp, 'dd-MM-yyyy HH:mm:ss')}">
 						</span>
 					</div>
 

@@ -7,14 +7,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
 public class SecurityConfig {
-	@Autowired
-	private AuditLogRepository auditLogRepository;
 
 	@Autowired
-	private UserRepository userRepository;
+	private AuditLogService auditLogService;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -25,38 +24,105 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/login", "/register", "/forgot-password", "/css/**", "/js/**", "/profile-images/**")
-				.permitAll().requestMatchers("/admin/**").hasAuthority("ADMIN")
-				.requestMatchers("/audit", "/export-audit").hasAnyAuthority("ADMIN", "MANAGER", "AUDITOR")
-				.requestMatchers("/download-report/**").hasAnyAuthority("ADMIN", "MANAGER", "AUDITOR" , "OFFICER" , "ANALYST").anyRequest()
-				.authenticated())
-				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
-				.exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
-				.logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout")
-						.addLogoutHandler((request, response, auth) -> {
-							if (auth != null) {
-								try {
-									User user = userRepository.findByUsername(auth.getName());
-									AuditLog log = new AuditLog();
-									log.setUserId(user != null ? user.getId() : 0);
-									log.setUsername(auth.getName());
-									log.setUserRole(user != null ? user.getRole() : "USER");
-									log.setAction("USER_LOGOUT");
-									log.setDetails("User logged out");
-									log.setIpAddress(request.getRemoteAddr());
-									auditLogRepository.save(log);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						}).invalidateHttpSession(true).clearAuthentication(true).permitAll())
+				.permitAll()
 
-				// ✅ Session management
-				.sessionManagement(session -> session.maximumSessions(1).expiredUrl("/login?expired"))
+				// Admin dashboard — Admin only
+				.requestMatchers("/admin/**").hasAuthority("ADMIN")
 
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/upload", "/register", "/delete/**", "/rescan/**",
-						"/profile/upload-image", "/profile/remove-photo", "/forgot-password", "/admin/change-role",
-						"/admin/delete-user"));
+				// Officer's claim/review dashboard — Officer only
+				.requestMatchers("/officer/**").hasAuthority("OFFICER")
+
+				// Manager's claim/review dashboard — Manager only
+				.requestMatchers("/manager/**").hasAuthority("MANAGER")
+
+				// Audit trail — visible to Admin and Manager
+				.requestMatchers("/audit", "/export-audit").hasAnyAuthority("ADMIN", "MANAGER")
+
+				.requestMatchers("/download-report/**").hasAnyAuthority("ADMIN", "MANAGER", "OFFICER")
+
+				// ✅ Regular customer-facing pages — open to EVERYONE who's logged in
+				// (USER, OFFICER, MANAGER, ADMIN can all apply, upload, view documents, etc.)
+				.requestMatchers("/dashboard", "/apply", "/upload", "/documents", "/anomalies")
+				.authenticated()
+
+				.anyRequest().authenticated()
+		)
+		.formLogin(form -> form
+				.loginPage("/login")
+				.successHandler(customSuccessHandler())
+				.permitAll()
+		)
+		.exceptionHandling(ex -> ex
+				.accessDeniedHandler((request, response, accessDeniedException) -> {
+					try {
+						String username = request.getUserPrincipal() != null
+								? request.getUserPrincipal().getName()
+								: "anonymous";
+						auditLogService.log(username, "ACCESS_DENIED",
+								"Access denied to " + request.getRequestURI() + " | "
+										+ accessDeniedException.getMessage(),
+								request);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					// Wrong-role users trying to hit /officer, /manager, /admin
+					// get sent back to their own correct dashboard instead of a dead-end page.
+					String redirectTo = "/dashboard";
+					if (request.isUserInRole("OFFICER")) {
+						redirectTo = "/officer";
+					} else if (request.isUserInRole("MANAGER")) {
+						redirectTo = "/manager";
+					} else if (request.isUserInRole("ADMIN")) {
+						redirectTo = "/admin";
+					}
+					response.sendRedirect(request.getContextPath() + redirectTo);
+				})
+		)
+		.logout(logout -> logout
+				.logoutUrl("/logout")
+				.logoutSuccessUrl("/login?logout")
+				.addLogoutHandler((request, response, auth) -> {
+					if (auth != null) {
+						try {
+							auditLogService.log(auth.getName(), "LOGOUT", "User logged out", request);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				})
+				.invalidateHttpSession(true)
+				.clearAuthentication(true)
+				.permitAll()
+		)
+		.sessionManagement(session -> session
+				.maximumSessions(1)
+				.expiredUrl("/login?expired")
+		)
+		.csrf(csrf -> csrf.ignoringRequestMatchers(
+				"/upload", "/register", "/delete/**", "/rescan/**",
+				"/profile/upload-image", "/profile/remove-photo", "/forgot-password",
+				"/admin/change-role", "/admin/delete-user"
+		));
 
 		return http.build();
+	}
+
+	@Bean
+	public AuthenticationSuccessHandler customSuccessHandler() {
+		return (request, response, authentication) -> {
+			boolean isOfficer = authentication.getAuthorities().stream()
+					.anyMatch(a -> a.getAuthority().equals("OFFICER"));
+			boolean isManager = authentication.getAuthorities().stream()
+					.anyMatch(a -> a.getAuthority().equals("MANAGER"));
+
+			if (isOfficer) {
+				response.sendRedirect(request.getContextPath() + "/officer");
+			} else if (isManager) {
+				response.sendRedirect(request.getContextPath() + "/manager");
+			} else {
+				response.sendRedirect(request.getContextPath() + "/dashboard");
+			}
+		};
 	}
 }

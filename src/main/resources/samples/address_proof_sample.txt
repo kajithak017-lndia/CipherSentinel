@@ -1,0 +1,12 @@
+ELECTRICITY BOARD
+
+ELECTRICITY BILL
+
+Consumer Name: Rajesh Kumar Menon
+Consumer No: 1234567890
+Service Address: 45, Anna Nagar, Madurai, Tamil Nadu - 625020
+
+Billing Period: 01/12/2025 to 31/12/2025
+Units Consumed: 210 kWh
+Bill Amount: INR 1850.00
+Due Date: 15/01/2026

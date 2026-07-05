@@ -481,9 +481,14 @@
 		<a href="/documents" class="dropdown-item-custom"><i class="fas fa-file-alt"></i> Documents</a>
 		<a href="/anomalies" class="dropdown-item-custom"><i class="fas fa-exclamation-triangle"></i> Anomalies</a>
 		<a href="/audit" class="dropdown-item-custom"><i class="fas fa-history"></i> Audit Trail</a>
-		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dropdown-item-custom">
-			<i class="fas fa-user-shield"></i>
-			Admin Dashboard
+		<a th:if="${#authorization.expression('hasAuthority(''OFFICER'')')}" href="/officer" class="dropdown-item-custom">
+		    <i class="fas fa-user-tie"></i> Officer Dashboard
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''MANAGER'')')}" href="/manager" class="dropdown-item-custom">
+		    <i class="fas fa-briefcase"></i> Manager Dashboard
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dropdown-item-customA">
+		    <i class="fas fa-user-shield"></i> Admin Dashboard
 		</a>
 		<a href="/profile" class="dropdown-item-custom"><i class="fas fa-user"></i> Profile</a>
 		<a href="/change-password" class="dropdown-item-custom"><i class="fas fa-key"></i>Change Password</a>

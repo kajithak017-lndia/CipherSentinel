@@ -1,0 +1,15 @@
+GOVERNMENT OF TAMIL NADU
+TRANSPORT DEPARTMENT
+
+REGISTRATION CERTIFICATE
+
+Registration No: TN01AB1234
+Owner Name: Rajesh Kumar Menon
+Address: 45, Anna Nagar, Madurai, Tamil Nadu - 625020
+
+Vehicle Class: Motor Car
+Chassis No: MA1TESTCHASSIS1234
+Engine No: TESTENGINE56789
+Fuel Type: Petrol
+Date of Registration: 20/07/2019
+Registration Valid Upto: 19/07/2034

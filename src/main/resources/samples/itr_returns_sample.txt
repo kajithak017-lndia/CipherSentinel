@@ -1,0 +1,15 @@
+INCOME TAX DEPARTMENT
+GOVT. OF INDIA
+
+ACKNOWLEDGEMENT INCOME TAX RETURN
+
+Assessment Year: 2025-2026
+PAN: ABCDE1234F
+Name: Rajesh Kumar Menon
+Acknowledgement No: 123456789012345
+Date of Filing: 28/07/2025
+
+Gross Total Income: INR 720000
+Total Deductions: INR 150000
+Taxable Income: INR 570000
+Tax Payable: INR 22000

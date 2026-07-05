@@ -42,7 +42,7 @@ public class LoginAuditListener {
             log.setUsername(username);
             log.setUserRole(
                 user != null ? user.getRole() : "USER");
-            log.setAction("USER_LOGIN");
+            log.setAction("LOGIN_SUCCESS");
             log.setDetails(
                 "User logged in successfully");
             log.setIpAddress(ip);

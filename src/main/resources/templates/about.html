@@ -357,11 +357,14 @@
 		<a href="/audit" class="dd-item">
 			<i class="fas fa-history"></i> Audit Trail
 		</a>
-		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}"
-		   href="/admin"
-		   class="dd-item">
-		    <i class="fas fa-user-shield"></i>
-		    Admin Dashboard
+		<a th:if="${#authorization.expression('hasAuthority(''OFFICER'')')}" href="/officer" class="dd-item">
+		    <i class="fas fa-user-tie"></i> Officer Dashboard
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''MANAGER'')')}" href="/manager" class="dd-item">
+		    <i class="fas fa-briefcase"></i> Manager Dashboard
+		</a>
+		<a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}" href="/admin" class="dd-item">
+		    <i class="fas fa-user-shield"></i> Admin Dashboard
 		</a>
 		<a href="/profile" class="dd-item">
 			<i class="fas fa-user"></i>
@@ -408,10 +411,12 @@
 			<h3>🛡️ About CipherSentinel</h3>
 
 			<p>
-				CipherSentinel is an AI-Powered Document Integrity Detection System
-				developed to identify document forgery, integrity violations,
-				suspicious modifications, and missing critical information in
-				Land Records, Legal Documents, and Financial Statements.
+				CipherSentinel is an AI-Powered Document Integrity Detection and
+				Banking Application Processing System developed to identify document
+				forgery, integrity violations, suspicious modifications, and missing
+				critical information across a wide range of documents — including
+				PAN Cards, Aadhaar Cards, Salary Slips, Bank Statements, Land Records,
+				Vehicle RCs, Income Certificates, and more.
 			</p>
 
 			<p>
@@ -423,9 +428,17 @@
 			</p>
 
 			<p>
+				Beyond document verification, CipherSentinel manages complete
+				banking service applications — from a customer applying for a
+				Home Loan, Personal Loan, Vehicle Loan, or other service, through
+				document submission, Officer review and endorsement, and final
+				Manager approval — with every step tracked in a full audit trail.
+			</p>
+
+			<p>
 				By continuously validating uploaded documents against trusted
 				document structures and integrity fingerprints, CipherSentinel
-				helps users detect unauthorized modifications and potential
+				helps banks detect unauthorized modifications and potential
 				tampering attempts before they can cause damage.
 			</p>
 
@@ -437,11 +450,7 @@
 
 			<ul class="feature-list">
 
-				<li>📄 Land Record Verification</li>
-
-				<li>⚖️ Legal Document Validation</li>
-
-				<li>💰 Financial Statement Analysis</li>
+				<li>📄 Multi-Document Type Verification (PAN, Aadhaar, Salary Slip, Bank Statement, Land Record, Vehicle RC, and more)</li>
 
 				<li>🔍 OCR-Based Text Extraction</li>
 
@@ -453,13 +462,23 @@
 
 				<li>🚨 AI-Assisted Anomaly Detection</li>
 
-				<li>📧 Email Alerts for Unsafe Documents</li>
+				<li>🏦 Banking Service Applications (Home Loan, Personal Loan, Vehicle Loan, Education Loan, Gold Loan, KYC Update, Account Opening)</li>
 
-				<li>📜 Audit Trail Monitoring</li>
+				<li>📈 Real-Time Application Progress Tracking</li>
+
+				<li>🧑‍💼 Officer Review & Approval Dashboard</li>
+
+				<li>📊 Manager Final-Approval Dashboard</li>
+
+				<li>📑 PDF Report Generation Per Document</li>
+
+				<li>📧 Email Alerts for Unsafe Documents & Application Decisions</li>
+
+				<li>📜 Full Audit Trail Monitoring</li>
 
 				<li>🔄 Document Re-Scanning</li>
 
-				<li>👤 User-Specific Secure Access</li>
+				<li>🔑 Role-Based Secure Access (User, Officer, Manager, Admin)</li>
 
 			</ul>
 
@@ -502,6 +521,14 @@
 				AI / Analytics : Weka, Similarity Analysis & Anomaly Detection
 			</div>
 
+			<div class="tech-item">
+				PDF Reporting : iText
+			</div>
+
+			<div class="tech-item">
+				Document Parsing : Apache POI (DOCX)
+			</div>
+
 		</div>
 		<div class="card-box">
 
@@ -529,6 +556,18 @@
 
 		    <div class="tech-item">
 		        ✔ AI-Based Anomaly Detection
+		    </div>
+
+		    <div class="tech-item">
+		        ✔ End-to-End Banking Application Processing
+		    </div>
+
+		    <div class="tech-item">
+		        ✔ Officer & Manager Claim-Based Review Workflow
+		    </div>
+
+		    <div class="tech-item">
+		        ✔ PDF Report Generation
 		    </div>
 
 		</div>

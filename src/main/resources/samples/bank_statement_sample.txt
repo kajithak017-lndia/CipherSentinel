@@ -1,0 +1,12 @@
+STATEMENT OF ACCOUNT
+
+Account Holder: Rajesh Kumar Menon
+Account No: 000123456789
+IFSC: TEST0001234
+Branch: Madurai Main Branch
+Statement Period: 01/01/2026 to 31/01/2026
+
+Date        Description                 Debit       Credit      Balance
+01/01/2026  Opening Balance                                     50000.00
+05/01/2026  Salary Credit                            45000.00   95000.00
+31/01/2026  Closing Balance                                     72500.00

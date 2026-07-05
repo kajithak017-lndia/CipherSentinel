@@ -1,0 +1,26 @@
+*** SAMPLE / TEST DOCUMENT — NOT A REAL PAYROLL RECORD ***
+Document Type: SALARY_SLIP
+
+TEST TECHNOLOGIES PVT LTD
+Payslip for the Month of January 2026
+
+Employee Name: RAHUL TEST KUMAR
+Employee ID: EMP00123
+Designation: Software Engineer
+Department: Engineering
+PAN: ABCDE1234F
+Bank Account No.: 000123456789
+
+Earnings                    Amount        Deductions              Amount
+Basic Salary                40,000.00     Provident Fund          4,800.00
+House Rent Allowance        16,000.00     Professional Tax          200.00
+Special Allowance            9,000.00     Income Tax (TDS)        3,000.00
+
+Gross Earnings              65,000.00     Total Deductions        8,000.00
+
+Net Pay: 57,000.00 (Rupees Fifty-Seven Thousand Only)
+
+--- END OF SAMPLE DOCUMENT ---
+This file is a synthetic placeholder generated for software testing
+purposes only. It does not represent a real employee or a real
+company's payroll record.

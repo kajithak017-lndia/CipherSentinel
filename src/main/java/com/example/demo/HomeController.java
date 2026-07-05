@@ -59,55 +59,56 @@ public class HomeController {
             .filter(d -> "PENDING"
                 .equals(d.getStatus())).count();
 
-        // ===== LAND RECORD COUNTS =====
-        long landSafe = allDocs.stream()
-            .filter(d -> "LAND_RECORD"
-                .equals(d.getDocumentType()) &&
-                "SAFE".equals(d.getStatus()))
-            .count();
-        long landUnsafe = allDocs.stream()
-            .filter(d -> "LAND_RECORD"
-                .equals(d.getDocumentType()) &&
-                "UNSAFE".equals(d.getStatus()))
-            .count();
+        // ===== DOCUMENT SCAN OVERVIEW (real uploaded document types) =====
+        java.util.LinkedHashMap<String, long[]> docTypeSafeUnsafe =
+            new java.util.LinkedHashMap<>();
+        for (Document d : allDocs) {
+            String type = d.getDocumentType();
+            if (type == null) {
+                type = "OTHER";
+            }
+            long[] counts = docTypeSafeUnsafe
+                .computeIfAbsent(type, k -> new long[2]);
+            if ("SAFE".equals(d.getStatus())) {
+                counts[0]++;
+            } else if ("UNSAFE".equals(d.getStatus())) {
+                counts[1]++;
+            }
+        }
 
-        // ===== LEGAL DOCUMENT COUNTS =====
-        long legalSafe = allDocs.stream()
-            .filter(d -> "LEGAL_DOCUMENT"
-                .equals(d.getDocumentType()) &&
-                "SAFE".equals(d.getStatus()))
-            .count();
-        long legalUnsafe = allDocs.stream()
-            .filter(d -> "LEGAL_DOCUMENT"
-                .equals(d.getDocumentType()) &&
-                "UNSAFE".equals(d.getStatus()))
-            .count();
+        List<String> docTypeLabels = new java.util.ArrayList<>();
+        List<Long> docTypeSafeCounts = new java.util.ArrayList<>();
+        List<Long> docTypeUnsafeCounts = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, long[]> entry :
+                docTypeSafeUnsafe.entrySet()) {
+            docTypeLabels.add(friendlyDocumentType(entry.getKey()));
+            docTypeSafeCounts.add(entry.getValue()[0]);
+            docTypeUnsafeCounts.add(entry.getValue()[1]);
+        }
 
-        // ===== FINANCIAL COUNTS =====
-        long financialSafe = allDocs.stream()
-            .filter(d -> "FINANCIAL_STATEMENT"
-                .equals(d.getDocumentType()) &&
-                "SAFE".equals(d.getStatus()))
-            .count();
-        long financialUnsafe = allDocs.stream()
-            .filter(d -> "FINANCIAL_STATEMENT"
-                .equals(d.getDocumentType()) &&
-                "UNSAFE".equals(d.getStatus()))
-            .count();
+        // ===== SERVICE TYPE COUNTS (real banking service per document) =====
+        java.util.LinkedHashMap<String, Long> serviceTypeCounts =
+            new java.util.LinkedHashMap<>();
+        for (Document d : allDocs) {
+            String serviceName = d.getServiceType();
+            if (serviceName == null || serviceName.isEmpty()) {
+                if (d.getApplication() != null &&
+                        d.getApplication().getService() != null &&
+                        d.getApplication().getService()
+                            .getServiceName() != null) {
+                    serviceName = d.getApplication().getService()
+                        .getServiceName();
+                } else {
+                    serviceName = "Uncategorized";
+                }
+            }
+            serviceTypeCounts.merge(serviceName, 1L, Long::sum);
+        }
 
-        // ===== TOTAL TYPE COUNTS =====
-        long landCount = allDocs.stream()
-            .filter(d -> "LAND_RECORD"
-                .equals(d.getDocumentType()))
-            .count();
-        long legalCount = allDocs.stream()
-            .filter(d -> "LEGAL_DOCUMENT"
-                .equals(d.getDocumentType()))
-            .count();
-        long financialCount = allDocs.stream()
-            .filter(d -> "FINANCIAL_STATEMENT"
-                .equals(d.getDocumentType()))
-            .count();
+        List<String> serviceTypeLabels =
+            new java.util.ArrayList<>(serviceTypeCounts.keySet());
+        List<Long> serviceTypeValues =
+            new java.util.ArrayList<>(serviceTypeCounts.values());
 
         // ===== ANOMALY COUNTS (user only) =====
         List<Anomaly> userAnomalies =
@@ -140,19 +141,13 @@ public class HomeController {
         model.addAttribute("pendingCount", pendingCount);
 
         // Chart data
-        model.addAttribute("landSafe", landSafe);
-        model.addAttribute("landUnsafe", landUnsafe);
-        model.addAttribute("legalSafe", legalSafe);
-        model.addAttribute("legalUnsafe", legalUnsafe);
-        model.addAttribute("financialSafe",
-            financialSafe);
-        model.addAttribute("financialUnsafe",
-            financialUnsafe);
+        model.addAttribute("docTypeLabels", docTypeLabels);
+        model.addAttribute("docTypeSafeCounts", docTypeSafeCounts);
+        model.addAttribute("docTypeUnsafeCounts", docTypeUnsafeCounts);
 
-        model.addAttribute("landCount", landCount);
-        model.addAttribute("legalCount", legalCount);
-        model.addAttribute("financialCount",
-            financialCount);
+        model.addAttribute("serviceTypeLabels", serviceTypeLabels);
+        model.addAttribute("serviceTypeValues", serviceTypeValues);
+
         model.addAttribute("totalAnomalies",
             totalAnomalies);
         model.addAttribute("highCount", highCount);
@@ -161,6 +156,24 @@ public class HomeController {
         model.addAttribute("auditCount", auditCount);
         return "dashboard";
     }
+    // Converts a stored documentType code (e.g. "PAN_CARD")
+    // into a friendly label (e.g. "PAN Card") for chart legends.
+    private String friendlyDocumentType(String type) {
+        switch (type) {
+            case "PAN_CARD": return "PAN Card";
+            case "AADHAAR_CARD": return "Aadhaar Card";
+            case "SALARY_SLIP": return "Salary Slip";
+            case "BANK_STATEMENT": return "Bank Statement";
+            case "LAND_RECORD": return "Land Record";
+            case "VEHICLE_RC": return "Vehicle RC";
+            case "INCOME_CERTIFICATE": return "Income Certificate";
+            case "ADDRESS_PROOF": return "Address Proof";
+            case "ADMISSION_LETTER": return "Admission Letter";
+            case "OTHER": return "Other";
+            default: return type;
+        }
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login";
@@ -373,7 +386,7 @@ public class HomeController {
 
     @GetMapping("/audit")
     public String viewAudit(
-        Authentication auth, Model model) {
+        Authentication auth, Model model, HttpServletRequest request) {
 
         User user = userRepository
             .findByUsername(auth.getName());
@@ -381,6 +394,9 @@ public class HomeController {
         model.addAttribute("logs",
             auditLogRepository
                 .findByUserId(user.getId()));
+
+        auditLogService.log(auth.getName(), "AUDIT_PAGE_OPENED",
+                "User viewed their audit trail", request);
 
         return "audit";
     }
