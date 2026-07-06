@@ -203,6 +203,20 @@
             cursor: pointer;
         }
 
+        .preview-link {
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .preview-link:hover {
+            color: #7b61ff;
+            text-decoration: underline;
+        }
+
         @media (max-width:768px) {
 
             .navbar-custom {
@@ -309,7 +323,7 @@
 		</div>
         <table class="doc-table">
             <thead>
-                <tr><th>Document</th><th>Type</th><th>Trust Score</th><th>Status</th></tr>
+                <tr><th>Document</th><th>Type</th><th>Trust Score</th><th>Status</th><th>Preview</th></tr>
             </thead>
             <tbody>
                 <tr th:each="doc : ${documents}">
@@ -317,6 +331,11 @@
                     <td th:text="${doc.documentType}">TYPE</td>
                     <td th:text="${doc.trustScore != null ? doc.trustScore + '%' : '—'}">—</td>
                     <td th:text="${doc.status}">STATUS</td>
+                    <td>
+                        <a th:href="@{'/preview/' + ${doc.id}}" target="_blank" class="preview-link">
+                            <i class="fas fa-eye"></i> Preview
+                        </a>
+                    </td>
                 </tr>
             </tbody>
         </table>
