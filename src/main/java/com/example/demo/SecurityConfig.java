@@ -66,17 +66,10 @@ public class SecurityConfig {
 						e.printStackTrace();
 					}
 
-					// Wrong-role users trying to hit /officer, /manager, /admin
-					// get sent back to their own correct dashboard instead of a dead-end page.
-					String redirectTo = "/dashboard";
-					if (request.isUserInRole("OFFICER")) {
-						redirectTo = "/officer";
-					} else if (request.isUserInRole("MANAGER")) {
-						redirectTo = "/manager";
-					} else if (request.isUserInRole("ADMIN")) {
-						redirectTo = "/admin";
-					}
-					response.sendRedirect(request.getContextPath() + redirectTo);
+					// Any authenticated user hitting a page they don't have the
+					// role/permission for — /download-report, /admin, /officer,
+					// /manager, /audit, etc. — is sent to the Access Denied page.
+					response.sendRedirect(request.getContextPath() + "/access-denied");
 				})
 		)
 		.logout(logout -> logout
