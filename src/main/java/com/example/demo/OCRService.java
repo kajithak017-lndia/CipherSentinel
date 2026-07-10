@@ -11,14 +11,23 @@ public class OCRService {
 
 	public String extractText(String imagePath) {
 
-		try {
+	    try {
 
-			Tesseract tesseract = new Tesseract();
+	        Tesseract tesseract = new Tesseract();
 
-			tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
+	        // Reads from TESSDATA_PREFIX env var (set in Docker/production).
+	        // Falls back to the Windows path for local dev on Windows,
+	        // and to the standard Linux install location otherwise.
+	        String tessDataPath = System.getenv("TESSDATA_PREFIX");
+	        if (tessDataPath == null || tessDataPath.isBlank()) {
+	            String os = System.getProperty("os.name", "").toLowerCase();
+	            tessDataPath = os.contains("win")
+	                    ? "C:\\Program Files\\Tesseract-OCR\\tessdata"
+	                    : "/usr/share/tesseract-ocr/5/tessdata";
+	        }
+	        tesseract.setDatapath(tessDataPath);
 
-			tesseract.setLanguage("eng");
-
+	        tesseract.setLanguage("eng");
 			String text = tesseract.doOCR(new File(imagePath));
 
 			System.out.println("OCR TEXT = \n" + text);
