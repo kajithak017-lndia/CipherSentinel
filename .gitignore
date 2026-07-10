@@ -38,5 +38,5 @@ profile-images/
 
 *.log
 *.tmp
-application.properties
+#application.properties
 application-local.properties
