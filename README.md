@@ -286,6 +286,11 @@ LinkedIn:
 
 https://www.linkedin.com/in/kajitha-k-729889308
 
+⭐ Support
+
+If you found this project helpful, consider giving it a ⭐ on GitHub. It helps others discover the project and motivates future improvements.
+
+
 
 🛡️ CipherSentinel © 2026
 
